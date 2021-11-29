@@ -4,29 +4,38 @@ from matplotlib import pyplot as plt
 
 import func
 
-test0 = cv.imread('test000.bmp', 0)
-# test0 = cv.resize(test0, (256, 256))
-test0 = cv.medianBlur(test0, 7)
-test0 = cv.equalizeHist(test0)
 
-test1 = cv.imread('test001.bmp', 0)
-# test1 = cv.resize(test1, (256, 256))
-test1 = cv.medianBlur(test1, 7)
-test1 = cv.equalizeHist(test1)
-# test0 = cv.GaussianBlur(test0, (3, 3), 2)
-# test = cv.adaptiveThreshold(test0, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 15, 0)
-# plt.hist(test0.ravel(), 256, [0, 256])
-# plt.show()
-for test in (test0, test1):
-    for i in np.nditer(test, op_flags=['readwrite']):
-        if i< 80:
-            i[...] = 80
+if __name__ == '__main__':
+
+    refer_img_list = ['test000.bmp']
+    test_img_list = ['test001.bmp', 'test002.bmp']
+    target_hist = np.loadtxt('target_hist.csv', delimiter=' ')
+
+    # # 处理参考图像
+    img = cv.imread(refer_img_list[0], 0)
+    # img = cv.medianBlur(img, 5)
+    img = cv.GaussianBlur(img, (5, 5), 1.7)
+    # img = cv.adaptiveThreshold(img, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 15, 0)
+    for i in np.nditer(img, op_flags=['readwrite']):
+        if i < 38:
+            i[...] = 0
         else:
             i[...] = 255
+    # img = cv.pyrDown(img)
+    # img = cv.Canny(img, 70, 200)
+    # hist = np.bincount(img.ravel(), minlength=256)
+    # norm_hist = cv.normalize(hist.astype(np.float32), None, 1, 0, cv.NORM_INF)
+    # plt.plot(norm_hist)
+    # plt.show()
+    cv.imshow('img', img)
+    cv.waitKey(0)
+
+# for test in (test0, test1):
+#     for i in np.nditer(test, op_flags=['readwrite']):
+#         if i < 80:
+#             i[...] = 80
+#         else:
+#             i[...] = 255
 
 # test0 = cv.Canny(test0, 60, 130)
 
-
-cv.imshow('img', test0)
-cv.imshow('img1', test1)
-cv.waitKey(0)
