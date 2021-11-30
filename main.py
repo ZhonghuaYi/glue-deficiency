@@ -11,8 +11,7 @@ if __name__ == '__main__':
     test_img_list = ['test001.bmp', 'test002.bmp']
     target_hist = np.loadtxt('target_hist.csv', delimiter=' ')
 
-    # # 处理参考图像
-    img = cv.imread(refer_img_list[0], 0)
+    img = cv.imread(test_img_list[0], 0)
     # img = cv.medianBlur(img, 5)
     img = cv.GaussianBlur(img, (5, 5), 1.7)
     # img = cv.adaptiveThreshold(img, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 15, 0)
@@ -21,6 +20,7 @@ if __name__ == '__main__':
             i[...] = 0
         else:
             i[...] = 255
+    # img = Spatial.histogram_matching(img, target_hist)
     # img = cv.pyrDown(img)
     # img = cv.Canny(img, 70, 200)
     # hist = np.bincount(img.ravel(), minlength=256)

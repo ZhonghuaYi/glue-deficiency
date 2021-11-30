@@ -251,7 +251,7 @@ def histogram_matching(in_pic, match):
                 match_transform_inverse[i] = match_transform_inverse[i - 1]
 
     from matplotlib import pyplot as plt
-    plt.plot(match_transform)
+    # plt.plot(match_transform)
     plt.plot(match_transform_inverse)
     plt.show()
 
