@@ -4,38 +4,76 @@ from matplotlib import pyplot as plt
 
 import Spatial
 
+REFER_LIST = ['test000.bmp']
+DEFECT_LIST = ['test001.bmp', 'test002.bmp']
+
+
+def get_histogram(in_pic, scale=256):
+    histogram = np.zeros(scale)
+    pic_size = in_pic.size
+    for i in in_pic.flat:
+        histogram[i] += 1
+
+    histogram /= pic_size
+    return histogram
+
+
+# get the cumulative distribution function(CDF) of in_pic.
+def cdf(in_pic_histogram):
+    scale = in_pic_histogram.size
+    transform = np.zeros(scale)
+    temp = 0.
+    for i in range(scale):
+        temp += in_pic_histogram[i]
+        transform[i] = temp
+
+    return (transform * (scale - 1)).astype(np.uint8)
+
+
+def match_histogram(in_pic, match):
+    in_histogram = get_histogram(in_pic)
+    in_cdf = cdf(in_histogram)
+    match_cdf = cdf(match)
+    # 构建累积概率误差矩阵
+    diff_cdf = np.zeros((256, 256))
+    for k in range(256):
+        for j in range(256):
+            diff_cdf[k][j] = np.abs(int(in_cdf[k]) - int(match_cdf[j]))
+
+    # 生成映射表
+    lut = np.zeros((256, ), dtype=np.uint8)
+    for m in range(256):
+        min_val = diff_cdf[m][0]
+        index = 0
+        for n in range(256):
+            if min_val > diff_cdf[m][n]:
+                min_val = diff_cdf[m][n]
+                index = n
+        lut[m] = index
+    
+    result = cv.LUT(in_pic, lut)
+    return result
+
+
+def refer_sample_generate():
+    for i in range(len(REFER_LIST)):
+        img = cv.imread(REFER_LIST[i], 0)
+        yield img
+
+
+def defect_sample_generate():
+    for i in range(len(DEFECT_LIST)):
+        img = cv.imread(DEFECT_LIST[i], 0)
+        yield img
+
+
+def threshold_segment(img, target_hist):
+    return Spatial.histogram_matching(img, target_hist)
+
 
 if __name__ == '__main__':
 
-    refer_img_list = ['test000.bmp']
-    test_img_list = ['test001.bmp', 'test002.bmp']
-    target_hist = np.loadtxt('target_hist.csv', delimiter=' ')
 
-    img = cv.imread(test_img_list[0], 0)
-    # img = cv.medianBlur(img, 5)
-    img = cv.GaussianBlur(img, (5, 5), 1.7)
-    # img = cv.adaptiveThreshold(img, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 15, 0)
-    for i in np.nditer(img, op_flags=['readwrite']):
-        if i < 38:
-            i[...] = 0
-        else:
-            i[...] = 255
-    # img = Spatial.histogram_matching(img, target_hist)
-    # img = cv.pyrDown(img)
-    # img = cv.Canny(img, 70, 200)
-    # hist = np.bincount(img.ravel(), minlength=256)
-    # norm_hist = cv.normalize(hist.astype(np.float32), None, 1, 0, cv.NORM_INF)
-    # plt.plot(norm_hist)
-    # plt.show()
     cv.imshow('img', img)
     cv.waitKey(0)
-
-# for test in (test0, test1):
-#     for i in np.nditer(test, op_flags=['readwrite']):
-#         if i < 80:
-#             i[...] = 80
-#         else:
-#             i[...] = 255
-
-# test0 = cv.Canny(test0, 60, 130)
 
