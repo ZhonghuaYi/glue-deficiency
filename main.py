@@ -67,13 +67,22 @@ def defect_sample_generate():
         yield img
 
 
-def threshold_segment(img, target_hist):
-    return Spatial.histogram_matching(img, target_hist)
+def threshold_segment(img, threshold):
+    out = img.copy()
+    out = cv.GaussianBlur(out, (5, 5), 1.7)
+    for i in np.nditer(out, op_flags=['readwrite']):
+        if i < threshold:
+            i[...] = 0
+        else:
+            i[...] = 255
+
+    return out
 
 
 if __name__ == '__main__':
-
-
-    cv.imshow('img', img)
+    refer_sample = refer_sample_generate()
+    image = refer_sample.__next__()
+    image = threshold_segment(image, 37)
+    cv.imshow('img', image)
     cv.waitKey(0)
 
