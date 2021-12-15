@@ -55,6 +55,13 @@ def match_histogram(in_pic, match):
     return result
 
 
+def sample_generate():
+    sample_list = REFER_LIST + DEFECT_LIST
+    for sample_path in sample_list:
+        img = cv.imread(sample_path, 0)
+        yield img
+
+
 def refer_sample_generate():
     for i in range(len(REFER_LIST)):
         img = cv.imread(REFER_LIST[i], 0)
@@ -80,9 +87,17 @@ def threshold_segment(img, threshold):
 
 
 if __name__ == '__main__':
-    refer_sample = refer_sample_generate()
-    image = refer_sample.__next__()
-    image = threshold_segment(image, 37)
-    cv.imshow('img', image)
+    sample = sample_generate()
+    count = 1
+    structure_element = cv.getStructuringElement(cv.MORPH_RECT, (7, 7))
+    for image in sample:
+
+        image = threshold_segment(image, 37)
+        image = cv.erode(image, structure_element)
+        image = cv.morphologyEx(image, cv.MORPH_OPEN, structure_element)
+        window_name = 'img' + str(count)
+        cv.imshow(window_name, image)
+        count += 1
+
     cv.waitKey(0)
 
