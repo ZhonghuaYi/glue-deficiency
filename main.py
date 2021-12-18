@@ -8,6 +8,7 @@ REFER_LIST = ['test000.bmp']
 DEFECT_LIST = ['test001.bmp', 'test002.bmp']
 
 
+# normalized histogram
 def get_histogram(in_pic, scale=256):
     histogram = np.zeros(scale)
     pic_size = in_pic.size
@@ -76,9 +77,9 @@ def defect_sample_generate():
 
 def threshold_segment(img, threshold):
     out = img.copy()
-    out = cv.GaussianBlur(out, (5, 5), 1.7)
+    # out = cv.GaussianBlur(out, (5, 5), 1.7)
     for i in np.nditer(out, op_flags=['readwrite']):
-        if i < threshold:
+        if threshold[0] <= i < threshold[1]:
             i[...] = 0
         else:
             i[...] = 255
@@ -86,18 +87,80 @@ def threshold_segment(img, threshold):
     return out
 
 
+def area_segment(img):
+
+    def neighbor_expand(x, y, value):
+        """
+        此函数用于递归确定区域
+        :param x:
+        :param y:
+        :param value: 区域的新值，用于和原来的值区分开
+        :return:
+        """
+        img[x][y] = value
+        # ind为遍历的邻域顺序
+        ind = ((x, y+1), (x+1, y), (x, y-1), (x-1, y))
+        for x1, y1 in ind:
+            if (x1 < 0) or (x1 >= img_shape[0]) or (y1 < 0) or (y1 >= img_shape[1]):
+                continue
+            if img[x1][y1] == 0:
+                neighbor_expand(x1, y1, value)
+        return
+
+    area_value = (20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240)
+    area_num = 0
+    img_shape = img.shape
+    for i in range(img_shape[0]):
+        for j in range(img_shape[1]):
+            if img[i][j] == 0:
+                neighbor_expand(i, j, area_value[area_num])
+                area_num += 1
+
+
 if __name__ == '__main__':
     sample = sample_generate()
     count = 1
     structure_element = cv.getStructuringElement(cv.MORPH_RECT, (7, 7))
     for image in sample:
+        '''
+        在参考图像中，当手动阈值在37时，阈值分割效果明显。于是考虑到灰度小于37的区域大概面积占比是0.3，
+        于是将图像中灰度值较低的30%区域分割出来。这里利用了cdf，它本身是直方图的累积分布，因此只需要寻找
+        cdf中最接近0.3的位置，其索引即是能够将30%灰度比较低的区域分割出来的阈值
+        '''
+        hist = get_histogram(image)
+        img_cdf = cdf(hist) / 255.
+        index = (np.abs(img_cdf - 0.3)).argmin()  # index即为阈值
+        print("阈值：" + str(index))
 
-        image = threshold_segment(image, 37)
-        image = cv.erode(image, structure_element)
-        image = cv.morphologyEx(image, cv.MORPH_OPEN, structure_element)
+        '''
+        得到阈值后，对图像进行阈值分割，然后对不规则区域应用中值滤波平滑。
+        每次平滑后，需要通过膨胀背景从而腐蚀物体，以使得目标区域能够更容易被分离
+        '''
+        image = threshold_segment(image, (0, index))
+
+        image = cv.medianBlur(image, 9)
+        image = cv.dilate(image, structure_element)
+
+        image = cv.resize(image, (400, 400))
+        image = cv.medianBlur(image, 3)
+        image = cv.dilate(image, structure_element)
+
+        image = cv.resize(image, (70, 70))
+        compare = np.ones(image.shape, dtype=image.dtype) * 255
+        image = np.array(image == compare).astype(image.dtype) * 255
+        del compare
+
+        '''
+        将图像分成若干个区域
+        '''
+
+        area_segment(image)
+        image = threshold_segment(image, (60, 61))
+
         window_name = 'img' + str(count)
         cv.imshow(window_name, image)
         count += 1
+        # break
 
     cv.waitKey(0)
 
