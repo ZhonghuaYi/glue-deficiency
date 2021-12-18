@@ -8,8 +8,13 @@ REFER_LIST = ['test000.bmp']
 DEFECT_LIST = ['test001.bmp', 'test002.bmp']
 
 
-# normalized histogram
 def get_histogram(in_pic, scale=256):
+    """
+    获取正则化的直方图
+    :param in_pic: 输入图像
+    :param scale: 输入图像的灰阶
+    :return: 直方图(numpy)
+    """
     histogram = np.zeros(scale)
     pic_size = in_pic.size
     for i in in_pic.flat:
@@ -19,8 +24,12 @@ def get_histogram(in_pic, scale=256):
     return histogram
 
 
-# get the cumulative distribution function(CDF) of in_pic.
 def cdf(in_pic_histogram):
+    """
+    获取直方图的累积分布函数(CDF)
+    :param in_pic_histogram: 直方图
+    :return: 累积分布函数(numpy)
+    """
     scale = in_pic_histogram.size
     transform = np.zeros(scale)
     temp = 0.
@@ -32,6 +41,12 @@ def cdf(in_pic_histogram):
 
 
 def match_histogram(in_pic, match):
+    """
+    直方图匹配
+    :param in_pic: 输入图像
+    :param match: 被匹配的直方图
+    :return: 输出图像(numpy)
+    """
     in_histogram = get_histogram(in_pic)
     in_cdf = cdf(in_histogram)
     match_cdf = cdf(match)
@@ -45,18 +60,22 @@ def match_histogram(in_pic, match):
     lut = np.zeros((256, ), dtype=np.uint8)
     for m in range(256):
         min_val = diff_cdf[m][0]
-        index = 0
+        ind = 0
         for n in range(256):
             if min_val > diff_cdf[m][n]:
                 min_val = diff_cdf[m][n]
-                index = n
-        lut[m] = index
+                ind = n
+        lut[m] = ind
     
     result = cv.LUT(in_pic, lut)
     return result
 
 
 def sample_generate():
+    """
+    产生一个所有样本的生成器
+    :return: 所有样本的生成器
+    """
     sample_list = REFER_LIST + DEFECT_LIST
     for sample_path in sample_list:
         img = cv.imread(sample_path, 0)
@@ -64,18 +83,32 @@ def sample_generate():
 
 
 def refer_sample_generate():
+    """
+    产生一个参考样本的生成器
+    :return: 参考样本的生成器
+    """
     for i in range(len(REFER_LIST)):
         img = cv.imread(REFER_LIST[i], 0)
         yield img
 
 
 def defect_sample_generate():
+    """
+    产生一个缺陷样本的生成器
+    :return: 缺陷样本的生成器
+    """
     for i in range(len(DEFECT_LIST)):
         img = cv.imread(DEFECT_LIST[i], 0)
         yield img
 
 
 def threshold_segment(img, threshold):
+    """
+    阈值分割，将阈值范围内的灰度置零，其他灰度置255
+    :param img: 输入图像
+    :param threshold: 阈值范围（元组）
+    :return: 输出图像
+    """
     out = img.copy()
     # out = cv.GaussianBlur(out, (5, 5), 1.7)
     for i in np.nditer(out, op_flags=['readwrite']):
@@ -88,12 +121,17 @@ def threshold_segment(img, threshold):
 
 
 def area_segment(img):
+    """
+    图像的区域分割
+    :param img: 输入图像
+    :return: 输出图像
+    """
 
     def neighbor_expand(x, y, value):
         """
         此函数用于递归确定区域
-        :param x:
-        :param y:
+        :param x: x坐标
+        :param y: y坐标
         :param value: 区域的新值，用于和原来的值区分开
         :return:
         """
@@ -151,9 +189,8 @@ if __name__ == '__main__':
         del compare
 
         '''
-        将图像分成若干个区域
+        将图像分成若干个区域，之后再将目标区域分割出来
         '''
-
         area_segment(image)
         image = threshold_segment(image, (60, 61))
 
