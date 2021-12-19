@@ -124,35 +124,44 @@ def area_segment(img):
     """
     图像的区域分割
     :param img: 输入图像
-    :return: 输出图像
+    :return: 区域面积， 区域起始坐标
     """
 
-    def neighbor_expand(x, y, value):
+    def neighbor_expand(x, y, value, region_area):
         """
         此函数用于递归确定区域
+        :param region_area: 当前区域累计面积
         :param x: x坐标
         :param y: y坐标
         :param value: 区域的新值，用于和原来的值区分开
-        :return:
+        :return: 累计面积
         """
         img[x][y] = value
+        region_area += 1
         # ind为遍历的邻域顺序
         ind = ((x, y+1), (x+1, y), (x, y-1), (x-1, y))
         for x1, y1 in ind:
             if (x1 < 0) or (x1 >= img_shape[0]) or (y1 < 0) or (y1 >= img_shape[1]):
                 continue
             if img[x1][y1] == 0:
-                neighbor_expand(x1, y1, value)
-        return
+                region_area = neighbor_expand(x1, y1, value, region_area)
+        return region_area
 
     area_value = (20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240)
     area_num = 0
+    regions = []
+    area_start = []
     img_shape = img.shape
     for i in range(img_shape[0]):
         for j in range(img_shape[1]):
             if img[i][j] == 0:
-                neighbor_expand(i, j, area_value[area_num])
+                area = 0
+                area_start.append((i, j))
+                area = neighbor_expand(i, j, area_value[area_num], area)
                 area_num += 1
+                regions.append(area)
+
+    return regions, area_start
 
 
 if __name__ == '__main__':
@@ -160,6 +169,11 @@ if __name__ == '__main__':
     count = 1
     structure_element = cv.getStructuringElement(cv.MORPH_RECT, (7, 7))
     for image in sample:
+
+        if count != 3:
+            count += 1
+            continue
+
         '''
         在参考图像中，当手动阈值在37时，阈值分割效果明显。于是考虑到灰度小于37的区域大概面积占比是0.3，
         于是将图像中灰度值较低的30%区域分割出来。这里利用了cdf，它本身是直方图的累积分布，因此只需要寻找
@@ -191,13 +205,20 @@ if __name__ == '__main__':
         '''
         将图像分成若干个区域，之后再将目标区域分割出来
         '''
-        area_segment(image)
-        image = threshold_segment(image, (60, 61))
+        areas, areas_start = area_segment(image)
+        invalid_area_start = np.where(np.array(areas) == 1)[0].tolist()
+        for i in invalid_area_start:
+            ind = areas_start[i]
+            image[ind[0]][ind[1]] = 255
+
+        # image = threshold_segment(image, (60, 61))
+        print(areas)
+        print(areas_start)
+        print(invalid_area_start)
 
         window_name = 'img' + str(count)
         cv.imshow(window_name, image)
         count += 1
-        # break
 
     cv.waitKey(0)
 
