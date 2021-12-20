@@ -1,3 +1,5 @@
+import time
+
 import cv2 as cv
 import numpy as np
 from matplotlib import pyplot as plt
@@ -107,18 +109,18 @@ def threshold_segment(img, threshold):
     """
     阈值分割，将阈值范围内的灰度置零，其他灰度置255
     :param img: 输入图像
-    :param threshold: 阈值范围（元组）
+    :param threshold: 阈值
     :return: 输出图像
     """
-    out = img.copy()
-    # out = cv.GaussianBlur(out, (5, 5), 1.7)
-    for i in np.nditer(out, op_flags=['readwrite']):
-        if threshold[0] <= i < threshold[1]:
-            i[...] = 0
-        else:
-            i[...] = 255
+    out = np.where(img < threshold, 0, 255)
+    # out = img.copy()
+    # for i in np.nditer(out, op_flags=['readwrite']):
+    #     if threshold[0] <= i < threshold[1]:
+    #         i[...] = 0
+    #     else:
+    #         i[...] = 255
 
-    return out
+    return out.astype(img.dtype)
 
 
 def area_segment(img, pre_area_num):
@@ -172,6 +174,7 @@ if __name__ == '__main__':
     count = 1  # 图像的计数
     structure_element = cv.getStructuringElement(cv.MORPH_RECT, (7, 7))  # 用于形态学计算的矩形结构元素
     target_region_areas = []
+    start_time = time.time()
     for image in sample:
         '''
         在参考图像中，当手动阈值在37时，阈值分割效果明显。于是考虑到灰度小于37的区域大概面积占比是0.3，
@@ -187,7 +190,6 @@ if __name__ == '__main__':
         得到阈值后，对图像进行阈值分割，然后对不规则区域应用中值滤波平滑。
         每次平滑后，需要通过膨胀背景从而腐蚀物体，以使得目标区域能够更容易被分离
         '''
-        image = threshold_segment(image, (0, index))
 
         image = cv.medianBlur(image, 9)
         image = cv.dilate(image, structure_element)
@@ -197,6 +199,7 @@ if __name__ == '__main__':
         image = cv.dilate(image, structure_element)
 
         image = cv.resize(image, (70, 70))
+        image = threshold_segment(image, index)
         compare = np.ones(image.shape, dtype=image.dtype) * 255
         image = np.array(image == compare).astype(image.dtype) * 255
         del compare
@@ -207,14 +210,6 @@ if __name__ == '__main__':
         areas, areas_start = area_segment(image, PRE_AREA_NUM)
 
         '''
-        当区域面积为1时，该区域为无效区域，将该区域置为背景，即清除该区域
-        '''
-        invalid_area_start = np.where(areas[:, 1] == 1)[0].tolist()
-        for i in invalid_area_start:
-            ind = areas_start[i]
-            image[ind[0]][ind[1]] = 255
-
-        '''
         将面积第二的区域提取出来
         '''
         ind = np.argsort(areas[:, 1])[-2]
@@ -223,14 +218,15 @@ if __name__ == '__main__':
         compare = np.ones(image.shape, dtype=image.dtype) * target_area_value
         image = np.array(image != compare).astype(image.dtype) * 255  # 将数值为target_area_value的区域分离出来
 
-        # print(areas)
+        print(areas)
         # print(areas_start)
-        # print(invalid_area_start)
 
         window_name = 'img' + str(count)
         cv.imshow(window_name, image)
         count += 1
 
     print(target_region_areas)  # 输出区域的面积
+    end_time = time.time()
+    print('运行时间：', end_time - start_time)
     cv.waitKey(0)
 
