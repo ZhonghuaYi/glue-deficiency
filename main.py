@@ -199,7 +199,8 @@ if __name__ == '__main__':
         image = cv.dilate(image, structure_element)
 
         image = cv.resize(image, (70, 70))
-        image = threshold_segment(image, index)
+        # image = threshold_segment(image, index)
+        th, image = cv.threshold(image, index, 255, cv.THRESH_BINARY)
         compare = np.ones(image.shape, dtype=image.dtype) * 255
         image = np.array(image == compare).astype(image.dtype) * 255
         del compare
