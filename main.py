@@ -182,7 +182,7 @@ if __name__ == '__main__':
         cdf中最接近0.3的位置，其索引即是能够将30%灰度比较低的区域分割出来的阈值
         '''
         hist = get_histogram(image)
-        img_cdf = cdf(hist) / 255.
+        img_cdf = cdf(hist) / 255.  # 正则化后的cdf，映射到了（0，1）范围
         index = (np.abs(img_cdf - 0.3)).argmin()  # index即为阈值
         # print("阈值：" + str(index))
 
