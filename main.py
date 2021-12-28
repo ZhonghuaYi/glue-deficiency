@@ -201,9 +201,6 @@ if __name__ == '__main__':
         image = cv.resize(image, (70, 70))
         # image = threshold_segment(image, index)
         th, image = cv.threshold(image, index, 255, cv.THRESH_BINARY)
-        compare = np.ones(image.shape, dtype=image.dtype) * 255
-        image = np.array(image == compare).astype(image.dtype) * 255
-        del compare
 
         '''
         将图像分成若干个区域
@@ -214,9 +211,9 @@ if __name__ == '__main__':
         将面积第二的区域提取出来
         '''
         ind = np.argsort(areas[:, 1])[-2]
-        target_area_value = areas[ind, 0]  # 获取到面积第二的区域的值
+        target_region_value = areas[ind, 0]  # 获取到面积第二的区域的值
         target_region_areas.append(areas[ind, 1])  # 将该区域的面积记录下来
-        compare = np.ones(image.shape, dtype=image.dtype) * target_area_value
+        compare = np.ones(image.shape, dtype=image.dtype) * target_region_value
         image = np.array(image != compare).astype(image.dtype) * 255  # 将数值为target_area_value的区域分离出来
 
         print(areas)
