@@ -205,19 +205,19 @@ if __name__ == '__main__':
         '''
         将图像分成若干个区域
         '''
-        areas, areas_start = area_segment(image, PRE_AREA_NUM)
+        regions, region_start = area_segment(image, PRE_AREA_NUM)
 
         '''
         将面积第二的区域提取出来
         '''
-        ind = np.argsort(areas[:, 1])[-2]
-        target_region_value = areas[ind, 0]  # 获取到面积第二的区域的值
-        target_region_areas.append(areas[ind, 1])  # 将该区域的面积记录下来
+        ind = np.argsort(regions[:, 1])[-2]
+        target_region_value = regions[ind, 0]  # 获取到面积第二的区域的值
+        target_region_areas.append(regions[ind, 1])  # 将该区域的面积记录下来
         compare = np.ones(image.shape, dtype=image.dtype) * target_region_value
         image = np.array(image != compare).astype(image.dtype) * 255  # 将数值为target_area_value的区域分离出来
 
-        print(areas)
-        # print(areas_start)
+        print(regions)
+        # print(region_start)
 
         window_name = 'img' + str(count)
         cv.imshow(window_name, image)
