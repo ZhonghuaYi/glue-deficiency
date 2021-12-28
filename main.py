@@ -151,22 +151,22 @@ def area_segment(img, pre_area_num):
                 region_area = neighbor_expand(x1, y1, value, region_area)
         return region_area
 
-    area_value = np.linspace(start=2, stop=255, num=pre_area_num, dtype=np.uint8)
-    area_num = 0
+    region_value = np.linspace(start=2, stop=255, num=pre_area_num, dtype=np.uint8)
+    region_num = 0
     regions = []
-    area_start = []
+    region_start = []
     img_shape = img.shape
     for i in range(img_shape[0]):
         for j in range(img_shape[1]):
             if img[i][j] == 0:
-                area = [0, 0]  # 区域的数值与面积
-                area_start.append((i, j))
-                area[1] = neighbor_expand(i, j, area_value[area_num], area[1])
-                area[0] = area_value[area_num]
-                area_num += 1
-                regions.append(area)
+                region = [0, 0]  # 区域的数值与面积
+                region_start.append((i, j))
+                region[1] = neighbor_expand(i, j, region_value[region_num], region[1])
+                region[0] = region_value[region_num]
+                region_num += 1
+                regions.append(region)
 
-    return np.array(regions), area_start
+    return np.array(regions), region_start
 
 
 if __name__ == '__main__':
