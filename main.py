@@ -75,5 +75,7 @@ def class1_defect1():
     cv.waitKey(0)
 
 
+
+
 if __name__ == '__main__':
     class1_defect1()
