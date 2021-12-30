@@ -75,7 +75,34 @@ def class1_defect1():
     cv.waitKey(0)
 
 
+def class1_defect2():
+    image_root = './image/class1_defect2/'
+    refer_images = ['refer000.BMP']
+    defect_images = ['defect000.BMP']
+    pre_area_num = 12
+
+    refer_list = [image_root + image for image in refer_images]
+    defect_list = [image_root + image for image in defect_images]
+    sample = sample_generate(refer_list, defect_list)  # 样本的生成器
+    count = 1  # 图像的计数
+    structure_element = cv.getStructuringElement(cv.MORPH_RECT, (7, 7))  # 用于形态学计算的矩形结构元素
+    target_region_areas = []
+    start_time = time.time()
+    for image in sample:
+        image = image[:, -1024:]
+        hist = get_histogram(image)
+        image = cv.medianBlur(image, 9)
+        image = cv.dilate(image, structure_element)
+        th, image = cv.threshold(image, 52, 255, cv.THRESH_BINARY)
+
+        window_name = 'img' + str(count)
+        cv.imshow(window_name, image)
+        count += 1
+
+    end_time = time.time()
+    print('运行时间：', end_time - start_time)
+    cv.waitKey(0)
 
 
 if __name__ == '__main__':
-    class1_defect1()
+    class1_defect2()
