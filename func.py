@@ -158,3 +158,32 @@ def area_segment(img, pre_area_num):
                 regions.append(region)
 
     return np.array(regions), region_start
+
+
+def template_generate(refer_sample, x=(), y=(), canny=(50, 120)):
+    # 第一步，对每张图像缩放到500，然后求所有图像的平均
+    refer_count = 1
+    t = refer_sample.__next__()
+    scale = min(t.shape) / 500
+    new_size = round(t.shape[1] / scale), round(t.shape[0] / scale)  # 这里的size指宽度和高度
+    t = cv.resize(t, new_size)
+    t = t[x[0]:x[1], y[0]:y[1]]
+    t = t.astype(np.float32)
+    for image in refer_sample:
+        scale = min(image.shape) / 500
+        new_size = round(image.shape[1] / scale), round(image.shape[0] / scale)  # 这里的size指宽度和高度
+        image = cv.resize(image, new_size)
+        image = image[x[0]:x[1], y[0]:y[1]]
+        image = image.astype(np.float32)
+        t += image
+        refer_count += 1
+
+    t /= refer_count
+    t = t.astype(np.uint8)
+
+    # 第二步，对图像进行高斯平滑
+    t = cv.GaussianBlur(t, (3, 3), sigmaX=1)
+
+    # 第三步，Canny法提取图像边缘
+    t = cv.Canny(t, canny[0], canny[1])
+    return t
