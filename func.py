@@ -160,17 +160,17 @@ def area_segment(img, pre_area_num):
     return np.array(regions), region_start
 
 
-def template_generate(refer_sample, x=(), y=(), canny=(50, 120)):
+def template_generate(refer_sample, template_size, x=(), y=(), canny=(50, 120)):
     # 第一步，对每张图像缩放到500，然后求所有图像的平均
     refer_count = 1
     t = refer_sample.__next__()
-    scale = min(t.shape) / 500
+    scale = min(t.shape) / template_size
     new_size = round(t.shape[1] / scale), round(t.shape[0] / scale)  # 这里的size指宽度和高度
     t = cv.resize(t, new_size)
     t = t[x[0]:x[1], y[0]:y[1]]
     t = t.astype(np.float32)
     for image in refer_sample:
-        scale = min(image.shape) / 500
+        scale = min(image.shape) / template_size
         new_size = round(image.shape[1] / scale), round(image.shape[0] / scale)  # 这里的size指宽度和高度
         image = cv.resize(image, new_size)
         image = image[x[0]:x[1], y[0]:y[1]]
@@ -187,3 +187,13 @@ def template_generate(refer_sample, x=(), y=(), canny=(50, 120)):
     # 第三步，Canny法提取图像边缘
     t = cv.Canny(t, canny[0], canny[1])
     return t
+
+
+def hough_draw(img):
+    drawing = np.zeros(img.shape, dtype=np.uint8)
+    lines = cv.HoughLinesP(img, 0.5, np.pi / 180, 2, minLineLength=3, maxLineGap=3)
+    for line in lines:
+        x1, y1, x2, y2 = line[0]
+        cv.line(drawing, (x1, y1), (x2, y2), 255, 1, lineType=cv.LINE_AA)
+
+    cv.imshow('hough', drawing)

@@ -55,9 +55,10 @@ def class1_defect1():
 
     elif method == 'template_match':
         canny = (50, 120)  # canny法的两个阈值
+        template_size = 500  # 图像最短边缩放到500
 
         # 生成模板
-        target_template = template_generate(refer_sample, x=(50, 300), y=(50, 300), canny=canny)
+        target_template = template_generate(refer_sample, template_size, x=(50, 300), y=(50, 300), canny=canny)
         # cv.imshow('img', target_template)
 
         # # 读取模板图像
@@ -104,13 +105,14 @@ def class1_defect2():
     results = []  # 判断结果
 
     method = "template_match"  # 使用的分割方法
-    f = "ccoeff"  # 用来分类的特征
+    f = "hough"  # 用来分类的特征
 
     if method == 'template_match':
         canny = (50, 120)  # canny法的两个阈值
+        template_size = 500  # 图像最短边缩放到500
 
         # 生成模板
-        target_template = template_generate(refer_sample, x=(20, 100), y=(220, 470), canny=canny)
+        target_template = template_generate(refer_sample, template_size, x=(20, 100), y=(220, 470), canny=canny)
         # cv.imshow('img', target_template)
 
         # # 读取模板图像
@@ -131,6 +133,9 @@ def class1_defect2():
                 result = feature.correlation(CCOEFF)
                 results.append(result)
 
+            elif f == "hough":
+                hough_draw(image)
+
             count += 1  # 图像计数加一
 
         print("判断结果：", results)
@@ -140,4 +145,4 @@ def class1_defect2():
 
 
 if __name__ == '__main__':
-    class1_defect1()
+    class1_defect2()
