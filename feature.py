@@ -9,7 +9,7 @@ def correlation(ccoeff):
     :param ccoeff: 相关系数
     :return: True表示图像没有缺陷
     """
-    if ccoeff < 0.8:
+    if ccoeff < 0.7:
         return False
 
     else:

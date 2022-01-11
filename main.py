@@ -66,8 +66,22 @@ def defect1():
         # target_template = cv.imread(template_path, 0)
 
         for image in sample:
-            # 使用模板匹配的方式提取出目标区域
-            CCOEFF, image = segment.template_match(image, target_template, canny)
+            # M = cv.getRotationMatrix2D((image.shape[1] / 2, image.shape[0] / 2), 1.3, 1)
+            # image = cv.warpAffine(image, M, (image.shape[1], image.shape[0]))
+
+            max_ccoeff = 0
+            match_image = None
+            for i in range(0, 20):
+                angle = i * 0.5 - 5
+                M = cv.getRotationMatrix2D((image.shape[1] / 2, image.shape[0] / 2), angle, 1)
+                temp_image = cv.warpAffine(image, M, (image.shape[1], image.shape[0]))
+
+                CCOEFF, temp_image = segment.template_match(temp_image, target_template, canny)
+                if CCOEFF >= max_ccoeff:
+                    max_ccoeff = CCOEFF
+                    match_image = temp_image
+
+            image = match_image
 
             # # 显示最终分离出的区域的图像
             # window_name = 'img' + str(count)  # 图像窗口的名称
@@ -127,18 +141,31 @@ def defect2():
         # target_template = cv.imread(template_path, 0)
 
         for image in sample:
-            # M = cv.getRotationMatrix2D((image.shape[1] / 2, image.shape[0] / 2), 1, 1)
+            # M = cv.getRotationMatrix2D((image.shape[1] / 2, image.shape[0] / 2), 1.3, 1)
             # image = cv.warpAffine(image, M, (image.shape[1], image.shape[0]))
-            CCOEFF, image = segment.template_match(image, target_template, canny)
 
-            # # 显示最终分离出的区域的图像
-            # window_name = 'img' + str(count)  # 图像窗口的名称
-            # cv.imshow(window_name, image)
+            max_ccoeff = 0
+            match_image = None
+            for i in range(0, 20):
+                angle = i*0.5 - 5
+                M = cv.getRotationMatrix2D((image.shape[1] / 2, image.shape[0] / 2), angle, 1)
+                temp_image = cv.warpAffine(image, M, (image.shape[1], image.shape[0]))
+
+                CCOEFF, temp_image = segment.template_match(temp_image, target_template, canny)
+                if CCOEFF >= max_ccoeff:
+                    max_ccoeff = CCOEFF
+                    match_image = temp_image
+
+            image = match_image
+
+            # 显示最终分离出的区域的图像
+            window_name = 'img' + str(count)  # 图像窗口的名称
+            cv.imshow(window_name, image)
 
             # 根据特征判断此样本是否合格（合格为True）
             if f == "ccoeff":
-                print(f"样本{count}相关系数：{CCOEFF}")
-                result = feature.correlation(CCOEFF)
+                print(f"样本{count}相关系数：{max_ccoeff}")
+                result = feature.correlation(max_ccoeff)
                 results.append(result)
 
             elif f == "hough":
@@ -146,7 +173,7 @@ def defect2():
                 lines = defect2_hough_line(image)
                 drawing = draw_line(drawing, lines)
                 cv.imshow('hough'+str(count), drawing)
-                result = feature.defect2_hough(image.shape, lines, 4)
+                result = feature.defect2_hough(image.shape, lines, 12)
                 results.append(result)
 
             count += 1  # 图像计数加一
@@ -158,4 +185,4 @@ def defect2():
 
 
 if __name__ == '__main__':
-    defect1()
+    defect2()
