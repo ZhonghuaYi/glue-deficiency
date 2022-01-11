@@ -189,11 +189,41 @@ def template_generate(refer_sample, template_size, x=(), y=(), canny=(50, 120)):
     return t
 
 
-def hough_draw(img):
-    drawing = np.zeros(img.shape, dtype=np.uint8)
-    lines = cv.HoughLinesP(img, 0.5, np.pi / 180, 2, minLineLength=3, maxLineGap=3)
+def draw_line(drawing, lines):
+    for line in lines:
+        x1, y1, x2, y2 = line
+        cv.line(drawing, (x1, y1), (x2, y2), 255)
+
+    return drawing
+
+
+def defect1_hough_line(img):
+    lines = cv.HoughLinesP(img, 1, np.pi / 180, 5, minLineLength=5, maxLineGap=2)
+    out = []
+    for line in lines:
+        k = -1
+        x1, y1, x2, y2 = line[0]
+        if x1 != x2:
+            if y2 >= y1:
+                k = (y2 - y1) / (x2 - x1)
+            else:
+                k = (y1 - y2) / (x1 - x2)
+
+            if 0.3 < k < 3:
+                out.append(line[0].tolist())
+
+    return out
+
+
+def defect2_hough_line(img):
+    lines = cv.HoughLinesP(img, 1, np.pi / 180, 5, minLineLength=7, maxLineGap=2)
+    out = []
     for line in lines:
         x1, y1, x2, y2 = line[0]
-        cv.line(drawing, (x1, y1), (x2, y2), 255, 1, lineType=cv.LINE_AA)
+        divide = x2 - x1
+        if divide != 0:
+            k = abs((y2-y1) / divide)
+            if k < 0.2:
+                out.append(line[0].tolist())
 
-    cv.imshow('hough', drawing)
+    return out

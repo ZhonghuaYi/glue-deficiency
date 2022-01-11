@@ -8,7 +8,7 @@ import segment
 import feature
 
 
-def class1_defect1():
+def defect1():
     # 设定程序开始运行时间
     start_time = time.time()
 
@@ -26,7 +26,7 @@ def class1_defect1():
     results = []  # 判断结果
 
     method = "template_match"  # 使用的分割方法
-    f = "ccoeff"  # 用来分类的特征
+    f = "hough"  # 用来分类的特征
 
     if method == 'threshold_segment':
         area_percent = 0.3
@@ -69,14 +69,22 @@ def class1_defect1():
             # 使用模板匹配的方式提取出目标区域
             CCOEFF, image = segment.template_match(image, target_template, canny)
 
-            # 显示最终分离出的区域的图像
-            window_name = 'img' + str(count)  # 图像窗口的名称
-            cv.imshow(window_name, image)
+            # # 显示最终分离出的区域的图像
+            # window_name = 'img' + str(count)  # 图像窗口的名称
+            # cv.imshow(window_name, image)
 
             # 根据特征判断此样本是否合格（合格为True）
             if f == "ccoeff":
                 print(f"样本{count}相关系数：{CCOEFF}")
                 result = feature.correlation(CCOEFF)
+                results.append(result)
+
+            elif f == "hough":
+                drawing = np.zeros(image.shape, dtype=np.uint8)
+                lines = defect1_hough_line(image)
+                drawing = draw_line(drawing, lines)
+                cv.imshow('hough' + str(count), drawing)
+                result = feature.defect1_hough(image.shape, lines, 2)
                 results.append(result)
 
             count += 1  # 图像计数加一
@@ -87,7 +95,7 @@ def class1_defect1():
         cv.waitKey(0)
 
 
-def class1_defect2():
+def defect2():
     # 设定程序开始运行时间
     start_time = time.time()
 
@@ -108,24 +116,24 @@ def class1_defect2():
     f = "hough"  # 用来分类的特征
 
     if method == 'template_match':
-        canny = (50, 120)  # canny法的两个阈值
+        canny = (100, 200)  # canny法的两个阈值
         template_size = 500  # 图像最短边缩放到500
 
         # 生成模板
         target_template = template_generate(refer_sample, template_size, x=(20, 100), y=(220, 470), canny=canny)
-        # cv.imshow('img', target_template)
 
         # # 读取模板图像
         # template_path = image_root + 'target_template.BMP'
         # target_template = cv.imread(template_path, 0)
 
         for image in sample:
-            # 使用模板匹配的方式提取出目标区域
+            # M = cv.getRotationMatrix2D((image.shape[1] / 2, image.shape[0] / 2), 1, 1)
+            # image = cv.warpAffine(image, M, (image.shape[1], image.shape[0]))
             CCOEFF, image = segment.template_match(image, target_template, canny)
 
-            # 显示最终分离出的区域的图像
-            window_name = 'img' + str(count)  # 图像窗口的名称
-            cv.imshow(window_name, image)
+            # # 显示最终分离出的区域的图像
+            # window_name = 'img' + str(count)  # 图像窗口的名称
+            # cv.imshow(window_name, image)
 
             # 根据特征判断此样本是否合格（合格为True）
             if f == "ccoeff":
@@ -134,7 +142,12 @@ def class1_defect2():
                 results.append(result)
 
             elif f == "hough":
-                hough_draw(image)
+                drawing = np.zeros(image.shape, dtype=np.uint8)
+                lines = defect2_hough_line(image)
+                drawing = draw_line(drawing, lines)
+                cv.imshow('hough'+str(count), drawing)
+                result = feature.defect2_hough(image.shape, lines, 4)
+                results.append(result)
 
             count += 1  # 图像计数加一
 
@@ -145,4 +158,4 @@ def class1_defect2():
 
 
 if __name__ == '__main__':
-    class1_defect2()
+    defect1()
