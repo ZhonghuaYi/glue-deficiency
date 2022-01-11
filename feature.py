@@ -46,7 +46,6 @@ def defect1_hough(img_shape, lines, max_lines):
                 (feature_zone[0] < x2 < feature_zone[1] and feature_zone[2] < y2 < feature_zone[3]):
             line_count += 1
 
-    print(line_count)
     if line_count <= max_lines:
         return True
 
