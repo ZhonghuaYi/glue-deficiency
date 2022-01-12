@@ -126,7 +126,7 @@ def defect2():
     results = []  # 判断结果
 
     method = "template_match"  # 使用的分割方法
-    f = "hough"  # 用来分类的特征
+    f = "ccoeff"  # 用来分类的特征
 
     if method == 'template_match':
         canny = (100, 200)  # canny法的两个阈值

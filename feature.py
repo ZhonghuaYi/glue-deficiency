@@ -46,6 +46,7 @@ def defect1_hough(img_shape, lines, max_lines):
                 (feature_zone[0] < x2 < feature_zone[1] and feature_zone[2] < y2 < feature_zone[3]):
             line_count += 1
 
+    print(f'目标区域直线数量：{line_count}')
     if line_count <= max_lines:
         return True
 
@@ -68,7 +69,7 @@ def defect2_hough(img_shape, lines, max_lines):
         if (x1 < half_shape[1] and y1 > half_shape[0]) and (x2 < half_shape[1] and y2 > half_shape[0]):
             line_count += 1
 
-    print(line_count)
+    print(f'目标区域直线数量：{line_count}')
     if line_count <= max_lines:
         return True
 
