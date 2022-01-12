@@ -68,6 +68,7 @@ def defect2_hough(img_shape, lines, max_lines):
         if (x1 < half_shape[1] and y1 > half_shape[0]) and (x2 < half_shape[1] and y2 > half_shape[0]):
             line_count += 1
 
+    print(line_count)
     if line_count <= max_lines:
         return True
 

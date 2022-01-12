@@ -26,9 +26,9 @@ def defect1():
     results = []  # 判断结果
 
     method = "template_match"  # 使用的分割方法
-    f = "hough"  # 用来分类的特征
+    f = "ccoeff"  # 用来分类的特征
 
-    if method == 'threshold_segment':
+    if method == 'thresh':
         area_percent = 0.3
         pre_area_num = 12
         normal_area = 420
@@ -55,10 +55,9 @@ def defect1():
 
     elif method == 'template_match':
         canny = (50, 120)  # canny法的两个阈值
-        template_size = 500  # 图像最短边缩放到500
 
         # 生成模板
-        target_template = template_generate(refer_sample, template_size, x=(50, 300), y=(50, 300), canny=canny)
+        target_template = template_generate(refer_sample, x=(50, 300), y=(50, 300), canny=canny)
         # cv.imshow('img', target_template)
 
         # # 读取模板图像
@@ -83,14 +82,14 @@ def defect1():
 
             image = match_image
 
-            # # 显示最终分离出的区域的图像
-            # window_name = 'img' + str(count)  # 图像窗口的名称
-            # cv.imshow(window_name, image)
+            # 显示最终分离出的区域的图像
+            window_name = 'img' + str(count)  # 图像窗口的名称
+            cv.imshow(window_name, image)
 
             # 根据特征判断此样本是否合格（合格为True）
             if f == "ccoeff":
-                print(f"样本{count}相关系数：{CCOEFF}")
-                result = feature.correlation(CCOEFF)
+                print(f"样本{count}相关系数：{max_ccoeff}")
+                result = feature.correlation(max_ccoeff)
                 results.append(result)
 
             elif f == "hough":
@@ -131,10 +130,10 @@ def defect2():
 
     if method == 'template_match':
         canny = (100, 200)  # canny法的两个阈值
-        template_size = 500  # 图像最短边缩放到500
 
         # 生成模板
-        target_template = template_generate(refer_sample, template_size, x=(20, 100), y=(220, 470), canny=canny)
+        target_template = template_generate(refer_sample, x=(20, 100), y=(220, 470), canny=canny)
+        cv.imshow("template", target_template)
 
         # # 读取模板图像
         # template_path = image_root + 'target_template.BMP'
@@ -173,7 +172,7 @@ def defect2():
                 lines = defect2_hough_line(image)
                 drawing = draw_line(drawing, lines)
                 cv.imshow('hough'+str(count), drawing)
-                result = feature.defect2_hough(image.shape, lines, 12)
+                result = feature.defect2_hough(image.shape, lines, 10)
                 results.append(result)
 
             count += 1  # 图像计数加一
@@ -185,4 +184,5 @@ def defect2():
 
 
 if __name__ == '__main__':
-    defect2()
+    # defect1()  # 检测第一种缺陷
+    defect2()  # 检测第二种缺陷

@@ -160,11 +160,10 @@ def area_segment(img, pre_area_num):
     return np.array(regions), region_start
 
 
-def template_generate(refer_sample, normal_size, x=(), y=(), canny=(50, 120)):
+def template_generate(refer_sample, x=(), y=(), canny=(50, 120)):
     """
     从参考样本中截取某个区域作为模板
     :param refer_sample: 参考样本集
-    :param normal_size: 统一先将图像最短边resize到某个长度
     :param x: 区域的row方向区间
     :param y: 区域的col方向区间
     :param canny: canny的两个阈值
@@ -173,13 +172,13 @@ def template_generate(refer_sample, normal_size, x=(), y=(), canny=(50, 120)):
     # 第一步，对每张图像缩放，然后求所有图像的平均
     refer_count = 1
     t = refer_sample.__next__()
-    scale = min(t.shape) / normal_size
+    scale = min(t.shape) / 500
     new_size = round(t.shape[1] / scale), round(t.shape[0] / scale)  # 这里的size指宽度和高度
     t = cv.resize(t, new_size)
     t = t[x[0]:x[1], y[0]:y[1]]
     t = t.astype(np.float32)
     for image in refer_sample:
-        scale = min(image.shape) / normal_size
+        scale = min(image.shape) / 500
         new_size = round(image.shape[1] / scale), round(image.shape[0] / scale)  # 这里的size指宽度和高度
         image = cv.resize(image, new_size)
         image = image[x[0]:x[1], y[0]:y[1]]
@@ -224,7 +223,7 @@ def defect1_hough_line(img):
 
 
 def defect2_hough_line(img):
-    lines = cv.HoughLinesP(img, 1, np.pi / 180, 5, minLineLength=3, maxLineGap=1)
+    lines = cv.HoughLinesP(img, 1, np.pi / 180, 5, minLineLength=3, maxLineGap=5)
     out = []
     for line in lines:
         x1, y1, x2, y2 = line[0]
