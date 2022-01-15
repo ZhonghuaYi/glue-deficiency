@@ -9,6 +9,13 @@ import func
 
 
 def template_match(image, target_template, canny=(50, 120)):
+    """
+    模板匹配
+    :param image: 原图像
+    :param target_template: 目标区域的模板
+    :param canny: Canny法的低阈值和高阈值
+    :return: 目标区域与模板的相关系数
+    """
     template_shape = target_template.shape
     # 第一步，将图像缩放到一个统一的大小（较小边为500像素）
     scale = min(image.shape) / 500
@@ -32,7 +39,14 @@ def template_match(image, target_template, canny=(50, 120)):
 
 
 def threshold_segment(image, area_percent, pre_area_num, structure_element):
-
+    """
+    阈值分割
+    :param image: 原图像
+    :param area_percent: 灰度阈值以下的灰度所占图像的面积比
+    :param pre_area_num: 预设的最大区域数量
+    :param structure_element: 用于形态学计算的结构元素
+    :return:
+    """
     # 第一步
     # 在参考图像中，当手动阈值在37时，阈值分割效果明显。于是考虑到灰度小于37的区域大概面积占比是0.3，
     # 于是将图像中灰度值较低的30%区域分割出来。这里利用了cdf，它本身是直方图的累积分布，因此只需要寻找

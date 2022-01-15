@@ -70,7 +70,7 @@ def defect1():
 
             max_ccoeff = 0
             match_image = None
-            for i in range(0, 20):
+            for i in range(0, 21):
                 angle = i * 0.5 - 5
                 M = cv.getRotationMatrix2D((image.shape[1] / 2, image.shape[0] / 2), angle, 1)
                 temp_image = cv.warpAffine(image, M, (image.shape[1], image.shape[0]))
@@ -145,7 +145,7 @@ def defect2():
 
             max_ccoeff = 0
             match_image = None
-            for i in range(0, 20):
+            for i in range(0, 21):
                 angle = i*0.5 - 5
                 M = cv.getRotationMatrix2D((image.shape[1] / 2, image.shape[0] / 2), angle, 1)
                 temp_image = cv.warpAffine(image, M, (image.shape[1], image.shape[0]))
