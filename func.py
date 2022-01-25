@@ -160,41 +160,67 @@ def area_segment(img, pre_area_num):
     return np.array(regions), region_start
 
 
-def template_generate(refer_sample, x=(), y=(), canny=(50, 120)):
+def template_generate(refer_sample, x=(), y=(), flag="canny", canny=(50, 120), thresh=50):
     """
     从参考样本中截取某个区域作为模板
     :param refer_sample: 参考样本集
     :param x: 区域的row方向区间
     :param y: 区域的col方向区间
+    :param flag: 获取模板的方式，canny或者thresh
     :param canny: canny的两个阈值
+    :param thresh: thresh的阈值
     :return: 模板图像
     """
-    # 第一步，对每张图像缩放，然后求所有图像的平均
+    # 对每张图像缩放，然后求所有图像的平均
     refer_count = 1
-    t = refer_sample.__next__()
-    scale = min(t.shape) / 500
-    new_size = round(t.shape[1] / scale), round(t.shape[0] / scale)  # 这里的size指宽度和高度
-    t = cv.resize(t, new_size)
-    t = t[x[0]:x[1], y[0]:y[1]]
-    t = t.astype(np.float32)
+    t = np.empty((1, 1))
     for image in refer_sample:
         scale = min(image.shape) / 500
         new_size = round(image.shape[1] / scale), round(image.shape[0] / scale)  # 这里的size指宽度和高度
         image = cv.resize(image, new_size)
         image = image[x[0]:x[1], y[0]:y[1]]
         image = image.astype(np.float32)
+        if refer_count == 1:
+            t = image
         t += image
         refer_count += 1
 
     t /= refer_count
     t = t.astype(np.uint8)
 
-    # 第二步，对图像进行高斯平滑
-    t = cv.GaussianBlur(t, (3, 3), sigmaX=1)
+    if flag == "canny":
+        # 对图像进行高斯平滑
+        t = cv.GaussianBlur(t, (3, 3), sigmaX=1)
+        # Canny法提取图像边缘
+        t = cv.Canny(t, canny[0], canny[1])
 
-    # 第三步，Canny法提取图像边缘
-    t = cv.Canny(t, canny[0], canny[1])
+    elif flag == "thresh":
+        t = cv.medianBlur(t, 3)
+        __, t = cv.threshold(t, thresh, 255, cv.THRESH_BINARY)
+
     return t
+
+
+def gaussian_pyramid(img, flag, num):
+    """
+    返回图像金字塔
+    :param img: 原图像
+    :param flag: "up"或者"down"，表示上采样或者下采样
+    :param num: 金字塔层数
+    :return: list列表，图像大小由小到大或者由大到小，取决于采样方向
+    """
+    image = img.copy()
+    pyramid = [image]
+    if flag == "up":
+        for i in range(num - 1):
+            image = cv.pyrUp(image)
+            pyramid.append(image)
+    elif flag == "down":
+        for i in range(num - 1):
+            image = cv.pyrDown(image)
+            pyramid.append(image)
+
+    return pyramid[::-1]
 
 
 def draw_line(drawing, lines):

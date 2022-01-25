@@ -28,13 +28,44 @@ def template_match(image, target_template, canny=(50, 120)):
     # 第三步，Canny法提取图像边缘
     image = cv.Canny(image, canny[0], canny[1])
 
-    # 第四步，通过模板匹配，找到目标区域
+    # 获取模板和图像的三层下取样金字塔
+    t_pyramid = func.gaussian_pyramid(target_template, "down", 3)
+    img_pyramid = func.gaussian_pyramid(image, "down", 3)
+
+    # 通过从金字塔的上层开始进行模板匹配，找到最匹配的角度，误差在0.2度
+    angle_interval = (-45, 45)  # 模板旋转的角度范围
+    angle_num = (10, 11, 11)  # 对每层模板旋转的角度个数，元组长度应与t_pyramid相同
+    match_angle = 0  # 最匹配的角度
+    for i in range(len(t_pyramid)):
+        max_ccoeff = 0
+        angle_step = (angle_interval[1] - angle_interval[0]) / (angle_num[i] - 1)
+        for j in range(angle_num[i]):
+            # 得到角度
+            angle = angle_interval[0] + j * angle_step
+            # 旋转模板
+            M = cv.getRotationMatrix2D((t_pyramid[i].shape[1] / 2, t_pyramid[i].shape[0] / 2), angle, 1)
+            t = cv.warpAffine(t_pyramid[i], M, (t_pyramid[i].shape[1], t_pyramid[i].shape[0]))
+            # 匹配区域
+            res = cv.matchTemplate(img_pyramid[i], t, cv.TM_CCOEFF_NORMED)  # 使用的方法是相关系数
+            min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
+            CCOEFF = max_val  # 记录此时最匹配区域的相关系数
+            if CCOEFF >= max_ccoeff:
+                max_ccoeff = CCOEFF
+                match_angle = angle
+        if i < len(t_pyramid) - 1:
+            angle_interval = (match_angle - angle_step, match_angle + angle_step)
+
+    # print(match_angle)
+    # 将原图像旋转-match_angle度并与原模板匹配
+    M = cv.getRotationMatrix2D((image.shape[1] / 2, image.shape[0] / 2), -match_angle, 1)
+    image = cv.warpAffine(image, M, (image.shape[1], image.shape[0]))
     res = cv.matchTemplate(image, target_template, cv.TM_CCOEFF_NORMED)  # 使用的方法是相关系数
     min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
     CCOEFF = max_val  # 记录此时最匹配区域的相关系数
     left_top = max_loc  # 最匹配模板的区域的左上角坐标，为宽和高，不是x和y坐标
     image = image[left_top[1]:left_top[1] + template_shape[0],
                   left_top[0]:left_top[0] + template_shape[1]]
+
     return CCOEFF, image
 
 
