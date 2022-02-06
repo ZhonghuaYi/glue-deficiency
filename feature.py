@@ -3,17 +3,18 @@
 """
 
 
-def correlation(ccoeff):
+def correlation(ccoeff, th, th0):
     """
     用相关系数判断图像是否有缺陷
     :param ccoeff: 相关系数
     :return: True表示图像没有缺陷
     """
-    if ccoeff < 0.6:
-        return False
-
+    if ccoeff < th0:
+        return 2
+    elif th0 < ccoeff < th:
+        return 0
     else:
-        return True
+        return 1
 
 
 def region_area(area, normal_area):

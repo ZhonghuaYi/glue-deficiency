@@ -65,34 +65,33 @@ def match_histogram(in_pic, match):
     return result
 
 
-def sample_generate(refer_list, defect_list):
+def refer_generate(dir_path):
     """
-    产生一个所有样本的生成器
-    :return: 所有样本的生成器
-    """
-    sample_list = refer_list + defect_list
-    for sample_path in sample_list:
-        img = cv.imread(sample_path, 0)
-        yield img
-
-
-def refer_sample_generate(refer_list):
-    """
-    产生一个参考样本的生成器
+    将文件夹下的参考图片生成一个生成器
     :return: 参考样本的生成器
     """
-    for i in range(len(refer_list)):
-        img = cv.imread(refer_list[i], 0)
+    import os
+    files = os.listdir(dir_path)
+    for file in files:
+        if file[:5] != "refer":
+            continue
+        file_path = dir_path + "/" + file
+        img = cv.imread(file_path, 0)
         yield img
 
 
-def defect_sample_generate(defect_list):
+def sample_generate(dir_path):
     """
-    产生一个缺陷样本的生成器
-    :return: 缺陷样本的生成器
+    将文件夹下的样本图片生成一个生成器
+    :return: 样本的生成器
     """
-    for i in range(len(defect_list)):
-        img = cv.imread(defect_list[i], 0)
+    import os
+    files = os.listdir(dir_path)
+    for file in files:
+        if file[:6] != "sample":
+            continue
+        file_path = dir_path + "/" + file
+        img = cv.imread(file_path, 0)
         yield img
 
 
@@ -260,3 +259,14 @@ def defect2_hough_line(img):
                 out.append(line[0].tolist())
 
     return out
+
+
+def result_explain(result, n):
+    if result == 0:
+        print(f"检测到缺陷{n}")
+    elif result == 1:
+        print(f"未检测到缺陷{n}")
+    elif result == 2:
+        print(f"没有关于缺陷{n}的目标区域")
+    else:
+        print("错误的结果码")

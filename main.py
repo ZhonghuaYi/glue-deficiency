@@ -12,21 +12,20 @@ def defect1():
     # 设定程序开始运行时间
     start_time = time.time()
 
-    # 读取样本
-    image_root = './image/class1_defect1/'
-    refer_images = ['refer000.BMP']  # 参考图像
-    defect_images = ['defect000.BMP', 'defect001.BMP']  # 缺陷图像
-    refer_list = [image_root + image for image in refer_images]
-    defect_list = [image_root + image for image in defect_images]
-    refer_sample = refer_sample_generate(refer_list)  # 参考样本的生成器
-    sample = sample_generate(refer_list, defect_list)  # 样本的生成器
+    # 读取参考样本
+    refer_root = "./image/refer1/"
+    refer_sample = refer_generate(refer_root)
+
+    # 读取所有样本
+    sample_root = "./image/sample/"
+    sample = sample_generate(sample_root)
 
     count = 1  # 图像的计数
 
     results = []  # 判断结果
 
     method = "template_match"  # 使用的分割方法
-    f = "ccoeff"  # 用来分类的特征
+    f = "hough"  # 用来分类的特征
 
     if method == 'thresh':
         area_percent = 0.3
@@ -58,34 +57,34 @@ def defect1():
 
         # 生成模板
         target_template = template_generate(refer_sample, x=(50, 300), y=(50, 300), canny=canny)
-        cv.imshow('img', target_template)
+        # cv.imshow('template', target_template)
 
         # # 读取模板图像
-        # template_path = image_root + 'target_template.BMP'
+        # template_path = refer_root + 'target_template.BMP'
         # target_template = cv.imread(template_path, 0)
 
         for image in sample:
-            M = cv.getRotationMatrix2D((image.shape[1] / 2, image.shape[0] / 2), 1.4, 1)
-            image = cv.warpAffine(image, M, (image.shape[1], image.shape[0]))
+            # M = cv.getRotationMatrix2D((image.shape[1] / 2, image.shape[0] / 2), 1.4, 1)
+            # image = cv.warpAffine(image, M, (image.shape[1], image.shape[0]))
 
             CCOEFF, image = roi.template_match(image, target_template, canny)
 
             # 显示最终分离出的区域的图像
-            window_name = 'img' + str(count)  # 图像窗口的名称
-            cv.imshow(window_name, image)
+            # window_name = 'img' + str(count)  # 图像窗口的名称
+            # cv.imshow(window_name, image)
 
             # 根据特征判断此样本是否合格（合格为True）
             if f == "ccoeff":
                 print(f"样本{count}相关系数：{CCOEFF}")
-                result = feature.correlation(CCOEFF)
+                result = feature.correlation(CCOEFF, 0.6, 0.2)
                 results.append(result)
 
             elif f == "hough":
                 drawing = np.zeros(image.shape, dtype=np.uint8)
-                lines = defect2_hough_line(image)
+                lines = defect1_hough_line(image)
                 drawing = draw_line(drawing, lines)
                 cv.imshow('hough' + str(count), drawing)
-                result = feature.defect2_hough(image.shape, lines, 10)
+                result = feature.defect1_hough(image.shape, lines, 10)
                 results.append(result)
 
             count += 1  # 图像计数加一
@@ -137,14 +136,13 @@ def defect2():
     # 设定程序开始运行时间
     start_time = time.time()
 
-    # 读取样本
-    image_root = './image/class1_defect2/'
-    refer_images = ['refer000.BMP']
-    defect_images = ['defect000.BMP']
-    refer_list = [image_root + image for image in refer_images]
-    defect_list = [image_root + image for image in defect_images]
-    refer_sample = refer_sample_generate(refer_list)  # 参考样本的生成器
-    sample = sample_generate(refer_list, defect_list)  # 样本的生成器
+    # 读取参考样本
+    refer_root = "./image/refer2/"
+    refer_sample = refer_generate(refer_root)
+
+    # 读取所有样本
+    sample_root = "./image/sample/"
+    sample = sample_generate(sample_root)
 
     count = 1  # 图像的计数
 
@@ -161,7 +159,7 @@ def defect2():
         cv.imshow("template", target_template)
 
         # # 读取模板图像
-        # template_path = image_root + 'target_template.BMP'
+        # template_path = refer_root + 'target_template.BMP'
         # target_template = cv.imread(template_path, 0)
 
         for image in sample:
@@ -177,7 +175,7 @@ def defect2():
             # 根据特征判断此样本是否合格（合格为True）
             if f == "ccoeff":
                 print(f"样本{count}相关系数：{CCOEFF}")
-                result = feature.correlation(CCOEFF)
+                result = feature.correlation(CCOEFF, 0.6, 0.2)
                 results.append(result)
 
             elif f == "hough":
@@ -237,7 +235,71 @@ def defect2():
         cv.waitKey(0)
 
 
+def template_match(image):
+    # 设定程序开始运行时间
+    start_time = time.time()
+
+    # 读取参考样本
+    refer1_root = "./image/refer1/"
+    refer1_sample = refer_generate(refer1_root)
+    refer2_root = "./image/refer2/"
+    refer2_sample = refer_generate(refer2_root)
+
+    result1 = None
+    result2 = None# 判断结果
+    f = "ccoeff"  # 用来分类的特征
+    canny1 = (50, 100)
+    canny2 = (100, 200)  # canny法的两个阈值
+
+    # 生成模板
+    template1 = template_generate(refer1_sample, x=(50, 300), y=(50, 300), canny=canny1)
+    cv.imshow("template1", template1)
+    template2 = template_generate(refer2_sample, x=(20, 100), y=(220, 470), canny=canny2)
+    cv.imshow("template2", template2)
+
+    # # 读取模板图像
+    # template1_path = refer1_root + 'target_template.BMP'
+    # template1 = cv.imread(template1_path, 0)
+    # template2_path = refer2_root + 'target_template.BMP'
+    # template2 = cv.imread(template2_path, 0)
+
+    M = cv.getRotationMatrix2D((image.shape[1] / 2, image.shape[0] / 2), 1.4, 1)
+    image = cv.warpAffine(image, M, (image.shape[1], image.shape[0]))
+
+    # 检测
+    CCOEFF1, image1 = roi.template_match(image.copy(), template1, canny1)  # 检测第一种缺陷
+    CCOEFF2, image2 = roi.template_match(image.copy(), template2, canny2)  # 检测第二种缺陷
+
+    if f == "ccoeff":
+        print(f"样本相关系数：{CCOEFF1} {CCOEFF2}")
+        result1 = feature.correlation(CCOEFF1, 0.6, 0.2)
+        result2 = feature.correlation(CCOEFF2, 0.6, 0.2)
+
+    # 霍夫不太适合不同缺陷的同时检测
+    # elif f == "hough":
+    #     drawing = np.zeros(image.shape, dtype=np.uint8)
+    #     lines = defect1_hough_line(image)
+    #     drawing = draw_line(drawing, lines)
+    #     cv.imshow('hough1', drawing)
+    #     result1 = feature.defect1_hough(image.shape, lines, 10)
+    #
+    #     drawing = np.zeros(image.shape, dtype=np.uint8)
+    #     lines = defect2_hough_line(image)
+    #     drawing = draw_line(drawing, lines)
+    #     cv.imshow('hough2', drawing)
+    #     result2 = feature.defect2_hough(image.shape, lines, 10)
+
+    result_explain(result1, 1)
+    result_explain(result2, 2)
+    end_time = time.time()  # 记录程序结束运行时间
+    print('运行时间：', end_time - start_time, "s")
+    cv.waitKey(0)
+
 
 if __name__ == '__main__':
+    sample_root = "./image/sample/"
+    sample = sample_generate(sample_root)
     # defect1()  # 检测第一种缺陷
-    defect2()  # 检测第二种缺陷
+    # defect2()  # 检测第二种缺陷
+    for image in sample:
+        template_match(image)
