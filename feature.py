@@ -7,11 +7,13 @@ def correlation(ccoeff, th, th0):
     """
     用相关系数判断图像是否有缺陷
     :param ccoeff: 相关系数
+    :param th: 相关系数的阈值，小于此值认为可能有缺陷
+    :param th0: 相关系数的阈值，小于此值认为没有匹配区域
     :return: True表示图像没有缺陷
     """
     if ccoeff < th0:
         return 2
-    elif th0 < ccoeff < th:
+    elif th0 <= ccoeff < th:
         return 0
     else:
         return 1
@@ -76,3 +78,30 @@ def defect2_hough(img_shape, lines, max_lines):
 
     else:
         return False
+
+
+def key_points(t_kp, matchs, th, th0, min_distance):
+    """
+    根据特征点的匹配情况返回判断结果
+    :param t_kp: 模板的特征点
+    :param matchs: 模板与图像匹配的结果
+    :param th: 匹配数量与模板特征点数量比值的阈值，小于此值认为可能有缺陷
+    :param th0: 匹配数量与模板特征点数量比值的阈值，小于此值认为没有匹配区域
+    :param min_distance: 匹配距离的平均值的阈值
+    :return:
+    """
+    match_percent = len(matchs) / len(t_kp)
+    if match_percent < th0:
+        return 2
+    elif th0 <= match_percent < th:
+        return 0
+    else:
+        distance_sum = 0
+        for m in matchs:
+            distance_sum += m.distance
+        average_distance = distance_sum / len(matchs)
+        if average_distance < min_distance:
+            return 1
+        else:
+            return 0
+

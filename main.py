@@ -16,9 +16,10 @@ def defect1():
     refer_root = "./image/refer1/"
     refer_sample = refer_generate(refer_root)
 
-    # 读取所有样本
+    # 读取样本
     sample_root = "./image/sample/"
-    sample = sample_generate(sample_root)
+    sample_list = ["sample000.BMP", "sample001.BMP", "sample002.BMP"]
+    sample = sample_generate(sample_root, sample_list)
 
     count = 1  # 图像的计数
 
@@ -119,8 +120,10 @@ def defect1():
             # 第三步，Canny法提取图像边缘
             image = cv.Canny(image, canny[0], canny[1])
 
+            # 图像的sift特征
             kp_img, des_img = sift.detectAndCompute(image, None)
 
+            # 将图像和模板的特征进行匹配
             bf = cv.BFMatcher()
             matchs = bf.match(des, des_img)
             match_image = cv.drawMatches(target_template, kp, image, kp_img, matchs, None, flags=2)
@@ -140,9 +143,10 @@ def defect2():
     refer_root = "./image/refer2/"
     refer_sample = refer_generate(refer_root)
 
-    # 读取所有样本
+    # 读取样本
     sample_root = "./image/sample/"
-    sample = sample_generate(sample_root)
+    sample_list = ["sample003.BMP", "sample004.BMP"]
+    sample = sample_generate(sample_root, sample_list)
 
     count = 1  # 图像的计数
 
@@ -220,14 +224,16 @@ def defect2():
             # 第三步，Canny法提取图像边缘
             image = cv.Canny(image, canny[0], canny[1])
 
+            # 图像的sift特征
             kp_img, des_img = sift.detectAndCompute(image, None)
             img_sift = cv.drawKeypoints(image, kp_img, None)
             cv.imshow(f'img{count}', img_sift)
 
+            # 将图像和模板的特征进行匹配
             bf = cv.BFMatcher()
             matchs = bf.match(des, des_img)
             match_image = cv.drawMatches(target_template, kp, image, kp_img, matchs, None, flags=2)
-            cv.imshow(f'img{count}_sift', match_image)
+            cv.imshow(f'img{count}_match', match_image)
             count += 1
 
         end_time = time.time()  # 记录程序结束运行时间
@@ -247,15 +253,15 @@ def template_match(image):
 
     result1 = None
     result2 = None# 判断结果
-    f = "ccoeff"  # 用来分类的特征
+    f = "sift"  # 用来分类的特征
     canny1 = (50, 100)
     canny2 = (100, 200)  # canny法的两个阈值
 
     # 生成模板
     template1 = template_generate(refer1_sample, x=(50, 300), y=(50, 300), canny=canny1)
-    cv.imshow("template1", template1)
+    # cv.imshow("template1", template1)
     template2 = template_generate(refer2_sample, x=(20, 100), y=(220, 470), canny=canny2)
-    cv.imshow("template2", template2)
+    # cv.imshow("template2", template2)
 
     # # 读取模板图像
     # template1_path = refer1_root + 'target_template.BMP'
@@ -263,8 +269,8 @@ def template_match(image):
     # template2_path = refer2_root + 'target_template.BMP'
     # template2 = cv.imread(template2_path, 0)
 
-    M = cv.getRotationMatrix2D((image.shape[1] / 2, image.shape[0] / 2), 1.4, 1)
-    image = cv.warpAffine(image, M, (image.shape[1], image.shape[0]))
+    # M = cv.getRotationMatrix2D((image.shape[1] / 2, image.shape[0] / 2), 1.4, 1)
+    # image = cv.warpAffine(image, M, (image.shape[1], image.shape[0]))
 
     # 检测
     CCOEFF1, image1 = roi.template_match(image.copy(), template1, canny1)  # 检测第一种缺陷
@@ -274,6 +280,42 @@ def template_match(image):
         print(f"样本相关系数：{CCOEFF1} {CCOEFF2}")
         result1 = feature.correlation(CCOEFF1, 0.6, 0.2)
         result2 = feature.correlation(CCOEFF2, 0.6, 0.2)
+
+    elif f == "sift":
+        sift = cv.SIFT_create()
+        # 模板1的sift特征
+        kp1, des1 = sift.detectAndCompute(template1, None)
+        template_sift = cv.drawKeypoints(template1, kp1, None)
+        cv.imshow('template1_sift', template_sift)
+        # 模板2的sift特征
+        kp2, des2 = sift.detectAndCompute(template2, None)
+        template_sift = cv.drawKeypoints(template2, kp2, None)
+        cv.imshow('template2_sift', template_sift)
+        # 图像1的sift特征
+        kp_img1, des_img1 = sift.detectAndCompute(image1, None)
+        img_sift = cv.drawKeypoints(image1, kp_img1, None)
+        cv.imshow(f'img1_sift', img_sift)
+        # 图像2的sift特征
+        kp_img2, des_img2 = sift.detectAndCompute(image2, None)
+        img_sift = cv.drawKeypoints(image2, kp_img2, None)
+        cv.imshow(f'img2_sift', img_sift)
+        # 将图像1和模板1的sift特征进行匹配
+        bf = cv.BFMatcher(crossCheck=True)
+        if kp_img1:
+            matchs = bf.match(des1, des_img1)
+            match_image = cv.drawMatches(template1, kp1, image1, kp_img1, matchs, None, flags=2)
+            cv.imshow(f'match1', match_image)
+        else:
+            matchs = []
+        result1 = feature.key_points(kp1, matchs, 0.7, 0.5, 100)
+        # 将图像2和模板2的sift特征进行匹配
+        if kp_img2:
+            matchs = bf.match(des2, des_img2)
+            match_image = cv.drawMatches(template2, kp2, image2, kp_img2, matchs, None, flags=2)
+            cv.imshow(f'match2', match_image)
+        else:
+            matchs = []
+        result2 = feature.key_points(kp2, matchs, 0.7, 0.5, 100)
 
     # 霍夫不太适合不同缺陷的同时检测
     # elif f == "hough":
@@ -301,5 +343,9 @@ if __name__ == '__main__':
     sample = sample_generate(sample_root)
     # defect1()  # 检测第一种缺陷
     # defect2()  # 检测第二种缺陷
+    count = 1
     for image in sample:
+        print(f"image{count}")
         template_match(image)
+        print("————————————")
+        count += 1

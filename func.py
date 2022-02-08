@@ -80,19 +80,25 @@ def refer_generate(dir_path):
         yield img
 
 
-def sample_generate(dir_path):
+def sample_generate(dir_path, sample_list=None):
     """
     将文件夹下的样本图片生成一个生成器
     :return: 样本的生成器
     """
     import os
     files = os.listdir(dir_path)
-    for file in files:
-        if file[:6] != "sample":
-            continue
-        file_path = dir_path + "/" + file
-        img = cv.imread(file_path, 0)
-        yield img
+    if sample_list:
+        for s in sample_list:
+            img_path = dir_path + s
+            img = cv.imread(img_path, 0)
+            yield img
+    else:
+        for file in files:
+            if file[:6] != "sample":
+                continue
+            img_path = dir_path + "/" + file
+            img = cv.imread(img_path, 0)
+            yield img
 
 
 def threshold_segment(img, threshold):
