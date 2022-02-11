@@ -268,11 +268,12 @@ def defect2_hough_line(img):
 
 
 def result_explain(result, n):
+    print(f"缺陷{n}区域：")
     if result == 0:
-        print(f"检测到缺陷{n}")
+        print(f"不正常")
     elif result == 1:
-        print(f"未检测到缺陷{n}")
+        print(f"正常")
     elif result == 2:
-        print(f"没有关于缺陷{n}的目标区域")
+        print(f"没有目标区域")
     else:
         print("错误的结果码")

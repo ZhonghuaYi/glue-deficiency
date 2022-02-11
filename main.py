@@ -253,7 +253,7 @@ def template_match(image):
 
     result1 = None
     result2 = None# 判断结果
-    f = "sift"  # 用来分类的特征
+    f = "ccoeff"  # 用来分类的特征
     canny1 = (50, 100)
     canny2 = (100, 200)  # canny法的两个阈值
 
