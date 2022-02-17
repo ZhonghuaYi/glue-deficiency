@@ -253,7 +253,7 @@ def template_match(image):
 
     result1 = None
     result2 = None# 判断结果
-    f = "ccoeff"  # 用来分类的特征
+    f = "hausdorff"  # 用来分类的特征
     canny1 = (50, 100)
     canny2 = (100, 200)  # canny法的两个阈值
 
@@ -272,16 +272,20 @@ def template_match(image):
     # M = cv.getRotationMatrix2D((image.shape[1] / 2, image.shape[0] / 2), 1.4, 1)
     # image = cv.warpAffine(image, M, (image.shape[1], image.shape[0]))
 
-    # 检测
-    CCOEFF1, image1 = roi.template_match(image.copy(), template1, canny1)  # 检测第一种缺陷
-    CCOEFF2, image2 = roi.template_match(image.copy(), template2, canny2)  # 检测第二种缺陷
-
     if f == "ccoeff":
+        # 检测
+        CCOEFF1, image1 = roi.template_match(image.copy(), template1, canny1)  # 检测第一种缺陷
+        CCOEFF2, image2 = roi.template_match(image.copy(), template2, canny2)  # 检测第二种缺陷
+
         print(f"样本相关系数：{CCOEFF1} {CCOEFF2}")
         result1 = feature.correlation(CCOEFF1, 0.6, 0.2)
         result2 = feature.correlation(CCOEFF2, 0.6, 0.2)
 
     elif f == "sift":
+        # 检测
+        CCOEFF1, image1 = roi.template_match(image.copy(), template1, canny1)  # 检测第一种缺陷
+        CCOEFF2, image2 = roi.template_match(image.copy(), template2, canny2)  # 检测第二种缺陷
+        # 创建sift实例
         sift = cv.SIFT_create()
         # 模板1的sift特征
         kp1, des1 = sift.detectAndCompute(template1, None)
@@ -316,6 +320,12 @@ def template_match(image):
         else:
             matchs = []
         result2 = feature.key_points(kp2, matchs, 0.7, 0.5, 100)
+
+    elif f == "hausdorff":
+        image1 = roi.hausdorff_match(template1, image.copy(), canny1)
+        cv.imshow("img1", image1)
+        image2 = roi.hausdorff_match(template2, image.copy(), canny2)
+        cv.imshow("img2", image2)
 
     # 霍夫不太适合不同缺陷的同时检测
     # elif f == "hough":

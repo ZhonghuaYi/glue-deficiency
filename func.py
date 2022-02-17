@@ -277,3 +277,5 @@ def result_explain(result, n):
         print(f"没有目标区域")
     else:
         print("错误的结果码")
+
+
