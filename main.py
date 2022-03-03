@@ -308,36 +308,63 @@ def template_match(image, templates, canny):
 
 
 if __name__ == '__main__':
-    # 读取样本
-    sample_root = "./image/sample/"
-    sample = sample_generate(sample_root)
-    # defect1()  # 检测第一种缺陷
-    # defect2()  # 检测第二种缺陷
+    sample_set = 2
+    if sample_set == 1:
+        # 读取样本
+        sample_root = "./image/sample/"
+        sample = sample_generate(sample_root)
+        # defect1()  # 检测第一种缺陷
+        # defect2()  # 检测第二种缺陷
 
-    # 读取参考样本
-    refer1_root = "./image/refer1/"
-    refer1_sample = refer_generate(refer1_root)
-    refer2_root = "./image/refer2/"
-    refer2_sample = refer_generate(refer2_root)
+        # 读取参考样本
+        refer1_root = "./image/refer1/"
+        refer1_sample = refer_generate(refer1_root)
+        refer2_root = "./image/refer2/"
+        refer2_sample = refer_generate(refer2_root)
 
-    canny1 = (50, 100)
-    canny2 = (100, 200)
-    canny = [canny1, canny2]  # canny法的两个阈值
-    # 生成模板
-    template1 = template_generate(refer1_sample, x=(50, 300), y=(50, 300), canny=canny1)
-    # cv.imshow("template1", template1)
-    template2 = template_generate(refer2_sample, x=(20, 100), y=(220, 470), canny=canny2)
-    # cv.imshow("template2", template2)
+        canny1 = (50, 100)
+        canny2 = (100, 200)
+        canny = [canny1, canny2]  # canny法的两个阈值
+        # 生成模板
+        template1 = template_generate(refer1_sample, x=(50, 300), y=(50, 300), canny=canny1)
+        # cv.imshow("template1", template1)
+        template2 = template_generate(refer2_sample, x=(20, 100), y=(220, 470), canny=canny2)
+        # cv.imshow("template2", template2)
 
-    # # 读取模板图像
-    # template1_path = refer1_root + 'target_template.BMP'
-    # template1 = cv.imread(template1_path, 0)
-    # template2_path = refer2_root + 'target_template.BMP'
-    # template2 = cv.imread(template2_path, 0)
+        # # 读取模板图像
+        # template1_path = refer1_root + 'target_template.BMP'
+        # template1 = cv.imread(template1_path, 0)
+        # template2_path = refer2_root + 'target_template.BMP'
+        # template2 = cv.imread(template2_path, 0)
 
-    templates = [template1, template2]
-    count = 1
-    for image in sample:
-        print(f"image{count}")
-        template_match(image, templates, canny)
-        count += 1
+        templates = [template1, template2]
+
+    elif sample_set == 2:
+        # 读取样本
+        sample_root = "./image2/sample/"
+        sample = sample_generate(sample_root)
+
+        # 读取参考样本
+        refer_root = "./image2/refer/"
+        refer_sample = []
+        for img in refer_generate(refer_root):
+            refer_sample.append(img)
+
+        canny1 = (50, 90)
+        canny2 = (100, 200)
+        canny = [canny1, canny2]  # canny法的两个阈值
+        # 生成模板
+        template = template_generate(refer_sample, x=(0, -1), y=(0, -1), canny=canny1)
+        cv.imshow("template", template)
+        template1 = template_generate(refer_sample, x=(150, 300), y=(120, 270), canny=canny1)
+        cv.imshow("template1", template1)
+        template2 = template_generate(refer_sample, x=(0, -1), y=(0, -1), canny=canny1)
+        cv.imshow("template2", template2)
+
+        cv.waitKey(0)
+
+    # count = 1
+    # for image in sample:
+    #     print(f"image{count}")
+    #     template_match(image, templates, canny)
+    #     count += 1
