@@ -241,9 +241,78 @@ def defect2():
         cv.waitKey(0)
 
 
-def template_match(image):
-    # 设定程序开始运行时间
-    start_time = time.time()
+def template_match(image, templates, canny):
+    start_time = time.time()  # 设定程序开始运行时间
+    f = "ccoeff"  # 用来分类的特征
+
+    # M = cv.getRotationMatrix2D((image.shape[1] / 2, image.shape[0] / 2), 1.4, 1)
+    # image = cv.warpAffine(image, M, (image.shape[1], image.shape[0]))
+
+    t_count = 1
+    for template in templates:
+        result = None
+        if f == "ccoeff":
+            # 检测
+            CCOEFF, image_roi = roi.template_match(image.copy(), template, canny[t_count-1])
+
+            print(f"区域{t_count}相关系数：{CCOEFF}")
+            result = feature.correlation(CCOEFF, 0.6, 0.2)
+
+        elif f == "sift":
+            # 检测
+            CCOEFF, image_roi = roi.template_match(image.copy(), template, canny[t_count-1])
+            # 创建sift实例
+            sift = cv.SIFT_create()
+            # 模板1的sift特征
+            kp, des = sift.detectAndCompute(template, None)
+            template_sift = cv.drawKeypoints(template, kp, None)
+            cv.imshow(f'template{t_count}_sift', template_sift)
+            # 图像的roi的sift特征
+            kp_img, des_img = sift.detectAndCompute(image_roi, None)
+            img_sift = cv.drawKeypoints(image_roi, kp_img, None)
+            cv.imshow(f'roi{t_count}_sift', img_sift)
+            # 将图像1和模板1的sift特征进行匹配
+            bf = cv.BFMatcher(crossCheck=True)
+            if kp_img:
+                matchs = bf.match(des, des_img)
+                match_image = cv.drawMatches(template, kp, image, kp_img, matchs, None, flags=2)
+                cv.imshow(f'match1', match_image)
+            else:
+                matchs = []
+            result = feature.key_points(kp, matchs, 0.7, 0.5, 100)
+        elif f == "hausdorff":
+            image_roi = roi.hausdorff_match(template1, image.copy(), canny1)
+            cv.imshow(f"roi{t_count}", image_roi)
+
+        # 霍夫不太适合不同缺陷的同时检测
+        # elif f == "hough":
+        #     drawing = np.zeros(image.shape, dtype=np.uint8)
+        #     lines = defect1_hough_line(image)
+        #     drawing = draw_line(drawing, lines)
+        #     cv.imshow('hough1', drawing)
+        #     result1 = feature.defect1_hough(image.shape, lines, 10)
+        #
+        #     drawing = np.zeros(image.shape, dtype=np.uint8)
+        #     lines = defect2_hough_line(image)
+        #     drawing = draw_line(drawing, lines)
+        #     cv.imshow('hough2', drawing)
+        #     result2 = feature.defect2_hough(image.shape, lines, 10)
+
+        result_explain(result, t_count)
+        t_count += 1
+
+    end_time = time.time()  # 记录程序结束运行时间
+    print('运行时间：', end_time - start_time, "s")
+    print("————————————")
+    cv.waitKey(0)
+
+
+if __name__ == '__main__':
+    # 读取样本
+    sample_root = "./image/sample/"
+    sample = sample_generate(sample_root)
+    # defect1()  # 检测第一种缺陷
+    # defect2()  # 检测第二种缺陷
 
     # 读取参考样本
     refer1_root = "./image/refer1/"
@@ -251,12 +320,9 @@ def template_match(image):
     refer2_root = "./image/refer2/"
     refer2_sample = refer_generate(refer2_root)
 
-    result1 = None
-    result2 = None# 判断结果
-    f = "hausdorff"  # 用来分类的特征
     canny1 = (50, 100)
-    canny2 = (100, 200)  # canny法的两个阈值
-
+    canny2 = (100, 200)
+    canny = [canny1, canny2]  # canny法的两个阈值
     # 生成模板
     template1 = template_generate(refer1_sample, x=(50, 300), y=(50, 300), canny=canny1)
     # cv.imshow("template1", template1)
@@ -269,93 +335,9 @@ def template_match(image):
     # template2_path = refer2_root + 'target_template.BMP'
     # template2 = cv.imread(template2_path, 0)
 
-    # M = cv.getRotationMatrix2D((image.shape[1] / 2, image.shape[0] / 2), 1.4, 1)
-    # image = cv.warpAffine(image, M, (image.shape[1], image.shape[0]))
-
-    if f == "ccoeff":
-        # 检测
-        CCOEFF1, image1 = roi.template_match(image.copy(), template1, canny1)  # 检测第一种缺陷
-        CCOEFF2, image2 = roi.template_match(image.copy(), template2, canny2)  # 检测第二种缺陷
-
-        print(f"样本相关系数：{CCOEFF1} {CCOEFF2}")
-        result1 = feature.correlation(CCOEFF1, 0.6, 0.2)
-        result2 = feature.correlation(CCOEFF2, 0.6, 0.2)
-
-    elif f == "sift":
-        # 检测
-        CCOEFF1, image1 = roi.template_match(image.copy(), template1, canny1)  # 检测第一种缺陷
-        CCOEFF2, image2 = roi.template_match(image.copy(), template2, canny2)  # 检测第二种缺陷
-        # 创建sift实例
-        sift = cv.SIFT_create()
-        # 模板1的sift特征
-        kp1, des1 = sift.detectAndCompute(template1, None)
-        template_sift = cv.drawKeypoints(template1, kp1, None)
-        cv.imshow('template1_sift', template_sift)
-        # 模板2的sift特征
-        kp2, des2 = sift.detectAndCompute(template2, None)
-        template_sift = cv.drawKeypoints(template2, kp2, None)
-        cv.imshow('template2_sift', template_sift)
-        # 图像1的sift特征
-        kp_img1, des_img1 = sift.detectAndCompute(image1, None)
-        img_sift = cv.drawKeypoints(image1, kp_img1, None)
-        cv.imshow(f'img1_sift', img_sift)
-        # 图像2的sift特征
-        kp_img2, des_img2 = sift.detectAndCompute(image2, None)
-        img_sift = cv.drawKeypoints(image2, kp_img2, None)
-        cv.imshow(f'img2_sift', img_sift)
-        # 将图像1和模板1的sift特征进行匹配
-        bf = cv.BFMatcher(crossCheck=True)
-        if kp_img1:
-            matchs = bf.match(des1, des_img1)
-            match_image = cv.drawMatches(template1, kp1, image1, kp_img1, matchs, None, flags=2)
-            cv.imshow(f'match1', match_image)
-        else:
-            matchs = []
-        result1 = feature.key_points(kp1, matchs, 0.7, 0.5, 100)
-        # 将图像2和模板2的sift特征进行匹配
-        if kp_img2:
-            matchs = bf.match(des2, des_img2)
-            match_image = cv.drawMatches(template2, kp2, image2, kp_img2, matchs, None, flags=2)
-            cv.imshow(f'match2', match_image)
-        else:
-            matchs = []
-        result2 = feature.key_points(kp2, matchs, 0.7, 0.5, 100)
-
-    elif f == "hausdorff":
-        image1 = roi.hausdorff_match(template1, image.copy(), canny1)
-        cv.imshow("img1", image1)
-        image2 = roi.hausdorff_match(template2, image.copy(), canny2)
-        cv.imshow("img2", image2)
-
-    # 霍夫不太适合不同缺陷的同时检测
-    # elif f == "hough":
-    #     drawing = np.zeros(image.shape, dtype=np.uint8)
-    #     lines = defect1_hough_line(image)
-    #     drawing = draw_line(drawing, lines)
-    #     cv.imshow('hough1', drawing)
-    #     result1 = feature.defect1_hough(image.shape, lines, 10)
-    #
-    #     drawing = np.zeros(image.shape, dtype=np.uint8)
-    #     lines = defect2_hough_line(image)
-    #     drawing = draw_line(drawing, lines)
-    #     cv.imshow('hough2', drawing)
-    #     result2 = feature.defect2_hough(image.shape, lines, 10)
-
-    result_explain(result1, 1)
-    result_explain(result2, 2)
-    end_time = time.time()  # 记录程序结束运行时间
-    print('运行时间：', end_time - start_time, "s")
-    cv.waitKey(0)
-
-
-if __name__ == '__main__':
-    sample_root = "./image/sample/"
-    sample = sample_generate(sample_root)
-    # defect1()  # 检测第一种缺陷
-    # defect2()  # 检测第二种缺陷
+    templates = [template1, template2]
     count = 1
     for image in sample:
         print(f"image{count}")
-        template_match(image)
-        print("————————————")
+        template_match(image, templates, canny)
         count += 1
