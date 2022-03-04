@@ -241,9 +241,8 @@ def defect2():
         cv.waitKey(0)
 
 
-def template_match(image, templates, canny):
+def template_match(image, templates, canny, f, thresh):
     start_time = time.time()  # 设定程序开始运行时间
-    f = "ccoeff"  # 用来分类的特征
 
     # M = cv.getRotationMatrix2D((image.shape[1] / 2, image.shape[0] / 2), 1.4, 1)
     # image = cv.warpAffine(image, M, (image.shape[1], image.shape[0]))
@@ -256,7 +255,7 @@ def template_match(image, templates, canny):
             CCOEFF, image_roi = roi.template_match(image.copy(), template, canny[t_count])
 
             print(f"区域{t_count+1}相关系数：{CCOEFF}")
-            result = feature.correlation(CCOEFF, 0.4, 0.2)
+            result = feature.correlation(CCOEFF, thresh[1], thresh[0])
 
         elif f == "sift":
             # 检测
@@ -312,6 +311,8 @@ if __name__ == '__main__':
     sample = None
     templates = []
     canny = []
+    f = ""
+    thresh = ()
     if sample_set == 1:
         # 读取样本
         sample_root = "./image/sample/"
@@ -328,6 +329,10 @@ if __name__ == '__main__':
         canny1 = (50, 100)
         canny2 = (100, 200)
         canny = [canny1, canny2]  # canny法的两个阈值
+
+        f = "ccoeff"
+        thresh = (0.2, 0.6)
+
         # 生成模板
         template1 = template_generate(refer1_sample, x=(50, 300), y=(50, 300), canny=canny1)
         templates.append(template1)
@@ -358,6 +363,10 @@ if __name__ == '__main__':
 
         canny1 = (0, 200)
         canny = [canny1, canny1, canny1, canny1, canny1]
+
+        f = "ccoeff"
+        thresh = (0.1, 0.4)
+
         # 生成模板
         # template = template_generate(refer_sample, x=(0, -1), y=(0, -1), canny=canny1)
         # cv.imshow("template", template)
@@ -378,5 +387,5 @@ if __name__ == '__main__':
     count = 1
     for image in sample:
         print(f"样本{count}：")
-        template_match(image, templates, canny)
+        template_match(image, templates, canny, f, thresh)
         count += 1
