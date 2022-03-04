@@ -248,29 +248,29 @@ def template_match(image, templates, canny):
     # M = cv.getRotationMatrix2D((image.shape[1] / 2, image.shape[0] / 2), 1.4, 1)
     # image = cv.warpAffine(image, M, (image.shape[1], image.shape[0]))
 
-    t_count = 1
+    t_count = 0
     for template in templates:
         result = None
         if f == "ccoeff":
             # 检测
-            CCOEFF, image_roi = roi.template_match(image.copy(), template, canny[t_count-1])
+            CCOEFF, image_roi = roi.template_match(image.copy(), template, canny[t_count])
 
-            print(f"区域{t_count}相关系数：{CCOEFF}")
-            result = feature.correlation(CCOEFF, 0.6, 0.2)
+            print(f"区域{t_count+1}相关系数：{CCOEFF}")
+            result = feature.correlation(CCOEFF, 0.4, 0.2)
 
         elif f == "sift":
             # 检测
-            CCOEFF, image_roi = roi.template_match(image.copy(), template, canny[t_count-1])
+            CCOEFF, image_roi = roi.template_match(image.copy(), template, canny[t_count])
             # 创建sift实例
             sift = cv.SIFT_create()
             # 模板1的sift特征
             kp, des = sift.detectAndCompute(template, None)
             template_sift = cv.drawKeypoints(template, kp, None)
-            cv.imshow(f'template{t_count}_sift', template_sift)
+            cv.imshow(f'template{t_count+1}_sift', template_sift)
             # 图像的roi的sift特征
             kp_img, des_img = sift.detectAndCompute(image_roi, None)
             img_sift = cv.drawKeypoints(image_roi, kp_img, None)
-            cv.imshow(f'roi{t_count}_sift', img_sift)
+            cv.imshow(f'roi{t_count+1}_sift', img_sift)
             # 将图像1和模板1的sift特征进行匹配
             bf = cv.BFMatcher(crossCheck=True)
             if kp_img:
@@ -281,8 +281,8 @@ def template_match(image, templates, canny):
                 matchs = []
             result = feature.key_points(kp, matchs, 0.7, 0.5, 100)
         elif f == "hausdorff":
-            image_roi = roi.hausdorff_match(template1, image.copy(), canny1)
-            cv.imshow(f"roi{t_count}", image_roi)
+            image_roi = roi.hausdorff_match(template, image.copy(), canny[t_count])
+            cv.imshow(f"roi{t_count+1}", image_roi)
 
         # 霍夫不太适合不同缺陷的同时检测
         # elif f == "hough":
@@ -298,7 +298,7 @@ def template_match(image, templates, canny):
         #     cv.imshow('hough2', drawing)
         #     result2 = feature.defect2_hough(image.shape, lines, 10)
 
-        result_explain(result, t_count)
+        result_explain(result, t_count+1)
         t_count += 1
 
     end_time = time.time()  # 记录程序结束运行时间
@@ -309,6 +309,9 @@ def template_match(image, templates, canny):
 
 if __name__ == '__main__':
     sample_set = 2
+    sample = None
+    templates = []
+    canny = []
     if sample_set == 1:
         # 读取样本
         sample_root = "./image/sample/"
@@ -327,9 +330,12 @@ if __name__ == '__main__':
         canny = [canny1, canny2]  # canny法的两个阈值
         # 生成模板
         template1 = template_generate(refer1_sample, x=(50, 300), y=(50, 300), canny=canny1)
-        # cv.imshow("template1", template1)
+        templates.append(template1)
         template2 = template_generate(refer2_sample, x=(20, 100), y=(220, 470), canny=canny2)
-        # cv.imshow("template2", template2)
+        templates.append(template2)
+        # for i in range(len(templates)):
+        #     cv.imshow(f"template{i+1}", templates[i])
+        # cv.waitKey(0)
 
         # # 读取模板图像
         # template1_path = refer1_root + 'target_template.BMP'
@@ -337,34 +343,40 @@ if __name__ == '__main__':
         # template2_path = refer2_root + 'target_template.BMP'
         # template2 = cv.imread(template2_path, 0)
 
-        templates = [template1, template2]
-
     elif sample_set == 2:
         # 读取样本
         sample_root = "./image2/sample/"
-        sample = sample_generate(sample_root)
+        sample = []
+        for img in sample_generate(sample_root, flag=1):
+            sample.append(img[:, :, 2])
 
         # 读取参考样本
         refer_root = "./image2/refer/"
         refer_sample = []
-        for img in refer_generate(refer_root):
-            refer_sample.append(img)
+        for img in refer_generate(refer_root, flag=1):
+            refer_sample.append(img[:, :, 2])
 
-        canny1 = (50, 90)
-        canny2 = (100, 200)
-        canny = [canny1, canny2]  # canny法的两个阈值
+        canny1 = (0, 200)
+        canny = [canny1, canny1, canny1, canny1, canny1]
         # 生成模板
-        template = template_generate(refer_sample, x=(0, -1), y=(0, -1), canny=canny1)
-        cv.imshow("template", template)
+        # template = template_generate(refer_sample, x=(0, -1), y=(0, -1), canny=canny1)
+        # cv.imshow("template", template)
         template1 = template_generate(refer_sample, x=(150, 300), y=(120, 270), canny=canny1)
-        cv.imshow("template1", template1)
-        template2 = template_generate(refer_sample, x=(0, -1), y=(0, -1), canny=canny1)
-        cv.imshow("template2", template2)
+        templates.append(template1)
+        template2 = template_generate(refer_sample, x=(170, 270), y=(230, 330), canny=canny1)
+        templates.append(template2)
+        template3 = template_generate(refer_sample, x=(70, 150), y=(300, 400), canny=canny1)
+        templates.append(template3)
+        template4 = template_generate(refer_sample, x=(250, 350), y=(250, 350), canny=canny1)
+        templates.append(template4)
+        template5 = template_generate(refer_sample, x=(300, 400), y=(100, 250), canny=canny1)
+        templates.append(template5)
+        # for i in range(len(templates)):
+        #     cv.imshow(f"template{i+1}", templates[i])
+        # cv.waitKey(0)
 
-        cv.waitKey(0)
-
-    # count = 1
-    # for image in sample:
-    #     print(f"image{count}")
-    #     template_match(image, templates, canny)
-    #     count += 1
+    count = 1
+    for image in sample:
+        print(f"样本{count}：")
+        template_match(image, templates, canny)
+        count += 1

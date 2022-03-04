@@ -65,7 +65,7 @@ def match_histogram(in_pic, match):
     return result
 
 
-def refer_generate(dir_path):
+def refer_generate(dir_path, flag=0):
     """
     将文件夹下的参考图片生成一个生成器
     :return: 参考样本的生成器
@@ -76,11 +76,11 @@ def refer_generate(dir_path):
         if file[:5] != "refer":
             continue
         file_path = dir_path + "/" + file
-        img = cv.imread(file_path, 0)
+        img = cv.imread(file_path, flag)
         yield img
 
 
-def sample_generate(dir_path, sample_list=None):
+def sample_generate(dir_path, sample_list=None, flag=0):
     """
     将文件夹下的样本图片生成一个生成器
     :return: 样本的生成器
@@ -97,7 +97,7 @@ def sample_generate(dir_path, sample_list=None):
             if file[:6] != "sample":
                 continue
             img_path = dir_path + "/" + file
-            img = cv.imread(img_path, 0)
+            img = cv.imread(img_path, flag)
             yield img
 
 
