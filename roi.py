@@ -64,7 +64,7 @@ def template_match(image, target_template, canny=(50, 120)):
     CCOEFF = max_val  # 记录此时最匹配区域的相关系数
     left_top = max_loc  # 最匹配模板的区域的左上角坐标，为宽和高，不是x和y坐标
     image = image[left_top[1]:left_top[1] + template_shape[0],
-                  left_top[0]:left_top[0] + template_shape[1]]
+            left_top[0]:left_top[0] + template_shape[1]]
 
     return CCOEFF, image
 
@@ -85,15 +85,15 @@ def hausdorff_match(template, image, canny=(50, 120)):
     img_shape = image.shape
     min_distance = np.inf
     min_ind = [0, 0]
-    for i in range(0, img_shape[0]-t_shape[0]):
-        for j in range(0, img_shape[1]-img_shape[1]):
-            h_distance = hausdorff_distance(template, image[i:i+t_shape[0], j:j+t_shape[1]])
+    for i in range(0, img_shape[0] - t_shape[0]):
+        for j in range(0, img_shape[1] - img_shape[1]):
+            h_distance = hausdorff_distance(template, image[i:i + t_shape[0], j:j + t_shape[1]])
             if h_distance < min_distance:
                 min_distance = h_distance
                 min_ind = [i, j]
 
     i, j = min_ind
-    return image[i:i+t_shape[0], j:j+t_shape[1]]
+    return image[i:i + t_shape[0], j:j + t_shape[1]]
 
 
 def threshold_segment(image, area_percent, pre_area_num, structure_element):
