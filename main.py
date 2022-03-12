@@ -258,27 +258,42 @@ def template_match(image, templates, canny, f, thresh):
             result = feature.correlation(CCOEFF, thresh[1], thresh[0])
 
         elif f == "sift":
-            # 检测
-            CCOEFF, image_roi = roi.template_match(image.copy(), template, canny[t_count])
-            # 创建sift实例
-            sift = cv.SIFT_create()
-            # 模板1的sift特征
-            kp, des = sift.detectAndCompute(template, None)
-            template_sift = cv.drawKeypoints(template, kp, None)
-            cv.imshow(f'template{t_count+1}_sift', template_sift)
-            # 图像的roi的sift特征
-            kp_img, des_img = sift.detectAndCompute(image_roi, None)
-            img_sift = cv.drawKeypoints(image_roi, kp_img, None)
-            cv.imshow(f'roi{t_count+1}_sift', img_sift)
-            # 将图像1和模板1的sift特征进行匹配
-            bf = cv.BFMatcher(crossCheck=True)
-            if kp_img:
-                matchs = bf.match(des, des_img)
-                match_image = cv.drawMatches(template, kp, image, kp_img, matchs, None, flags=2)
-                cv.imshow(f'match1', match_image)
+            USE_DES = False
+            if USE_DES:
+                # 检测
+                CCOEFF, image_roi = roi.template_match(image.copy(), template, canny[t_count])
+                # 创建sift实例
+                sift = cv.SIFT_create()
+                # 模板的sift特征
+                kp_t, des = sift.detectAndCompute(template, None)
+                # template_sift = cv.drawKeypoints(template, kp, None)
+                # cv.imshow(f'template{t_count+1}_sift', template_sift)
+                # 图像的roi的sift特征
+                kp_img, des_img = sift.detectAndCompute(image_roi, None)
+                # img_sift = cv.drawKeypoints(image_roi, kp_img, None)
+                # cv.imshow(f'roi{t_count+1}_sift', img_sift)
+                # 将图像和模板的sift特征进行匹配
+                bf = cv.BFMatcher(crossCheck=True)
+                if kp_img:
+                    matchs = bf.match(des, des_img)
+                    match_image = cv.drawMatches(template, kp_t, image_roi, kp_img, matchs, None, flags=2)
+                    cv.imshow(f'match{t_count+1}', match_image)
+                else:
+                    matchs = []
             else:
-                matchs = []
-            result = feature.key_points(kp, matchs, 0.7, 0.5, 100)
+                # 检测
+                CCOEFF, image_roi = roi.template_match(image.copy(), template, canny[t_count])
+                # 创建sift实例
+                sift = cv.SIFT_create()
+                # 获取特征点
+                kp_t = sift.detect(template, None)
+                kp_img = sift.detect(image_roi, None)
+                # 计算位置相近的特征点
+                matchs = key_point_match(kp_t, kp_img, 100000)
+                match_image = cv.drawMatches(template, kp_t, image_roi, kp_img, matchs, None, flags=2)
+                cv.imshow(f'match{t_count + 1}', match_image)
+
+            result = feature.key_points(kp_t, matchs, 0.7, 0.5, 100)
         elif f == "hausdorff":
             image_roi = roi.hausdorff_match(template, image.copy(), canny[t_count])
             cv.imshow(f"roi{t_count+1}", image_roi)
@@ -307,7 +322,7 @@ def template_match(image, templates, canny, f, thresh):
 
 
 if __name__ == '__main__':
-    sample_set = 2
+    sample_set = 1
     sample = None
     templates = []
     canny = []
@@ -330,7 +345,7 @@ if __name__ == '__main__':
         canny2 = (100, 200)
         canny = [canny1, canny2]  # canny法的两个阈值
 
-        f = "ccoeff"
+        f = "sift"
         thresh = (0.2, 0.6)
 
         # 生成模板
@@ -389,3 +404,4 @@ if __name__ == '__main__':
         print(f"样本{count}：")
         template_match(image, templates, canny, f, thresh)
         count += 1
+        break

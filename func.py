@@ -1,5 +1,6 @@
 import numpy as np
 import cv2 as cv
+from math import sqrt, pow
 
 
 def get_histogram(in_pic, scale=256):
@@ -226,6 +227,34 @@ def gaussian_pyramid(img, flag, num):
             pyramid.append(image)
 
     return pyramid[::-1]
+
+
+def nearest_point(point, pt_set):
+    min_distance = 1000000
+    index = 0
+    for i in range(len(pt_set)):
+        distance = sqrt(pow(point.pt[0]-pt_set[i].pt[0], 2) + pow(point.pt[1]-pt_set[i].pt[1], 2))
+        if distance < min_distance:
+            min_distance = distance
+            index = i
+
+    return min_distance, index
+
+
+def key_point_match(kp_t, kp_img, th):
+    matchs = []
+    for i in range(len(kp_t)):
+        distance_1, index_1 = nearest_point(kp_t[i], kp_img)
+        distance_2, index_2 = nearest_point(kp_img[index_1], kp_t)
+        if index_2 == i and distance_1 <= th:
+            match = cv.DMatch()
+            match.distance = distance_1
+            match.queryIdx = i
+            match.trainIdx = index_1
+            match.imgIdx = 0
+            matchs.append(match)
+
+    return matchs
 
 
 def draw_line(drawing, lines):
