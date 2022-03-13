@@ -241,20 +241,44 @@ def nearest_point(point, pt_set):
     return min_distance, index
 
 
-def key_point_match(kp_t, kp_img, th):
+def key_point_match(kp_t, kp_img, th, des_t=np.empty((0, 0)), des_img=np.empty((0, 0))):
     matchs = []
-    for i in range(len(kp_t)):
-        distance_1, index_1 = nearest_point(kp_t[i], kp_img)
-        distance_2, index_2 = nearest_point(kp_img[index_1], kp_t)
-        if index_2 == i and distance_1 <= th:
-            match = cv.DMatch()
-            match.distance = distance_1
-            match.queryIdx = i
-            match.trainIdx = index_1
-            match.imgIdx = 0
-            matchs.append(match)
+    if len(des_t) and len(des_img):
+        new_kp_t = []
+        new_kp_img = []
+        new_des_t = []
+        new_des_img = []
+        for i in range(len(kp_t)):
+            distance_1, index_1 = nearest_point(kp_t[i], kp_img)
+            distance_2, index_2 = nearest_point(kp_img[index_1], kp_t)
+            if index_2 == i and distance_1 <= th:
+                match = cv.DMatch()
+                match.distance = distance_1
+                match.queryIdx = i
+                match.trainIdx = index_1
+                match.imgIdx = 0
+                matchs.append(match)
+                new_kp_t.append(kp_t[i])
+                new_kp_img.append(kp_img[index_1])
+                new_des_t.append(des_t[i])
+                new_des_img.append(des_img[index_1])
 
-    return matchs
+        new_des_t = np.array(new_des_t)
+        new_des_img = np.array(new_des_img)
+        return new_kp_t, new_kp_img, new_des_t, new_des_img, matchs
+    else:
+        for i in range(len(kp_t)):
+            distance_1, index_1 = nearest_point(kp_t[i], kp_img)
+            distance_2, index_2 = nearest_point(kp_img[index_1], kp_t)
+            if index_2 == i and distance_1 <= th:
+                match = cv.DMatch()
+                match.distance = distance_1
+                match.queryIdx = i
+                match.trainIdx = index_1
+                match.imgIdx = 0
+                matchs.append(match)
+
+        return matchs
 
 
 def draw_line(drawing, lines):

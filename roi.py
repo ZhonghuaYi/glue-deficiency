@@ -8,7 +8,7 @@ import numpy as np
 import func
 
 
-def template_match(image, target_template, canny=(50, 120)):
+def template_match(image, target_template, canny=(50, 120), flag=0):
     """
     模板匹配
     :param image: 原图像
@@ -59,12 +59,14 @@ def template_match(image, target_template, canny=(50, 120)):
     # 将原图像旋转-match_angle度并与原模板匹配
     M = cv.getRotationMatrix2D((image.shape[1] / 2, image.shape[0] / 2), -match_angle, 1)
     image = cv.warpAffine(image, M, (image.shape[1], image.shape[0]))
+    compare = np.ones(image.shape, dtype=image.dtype) * 128
+    image = np.array(image >= compare).astype(image.dtype) * 255
     res = cv.matchTemplate(image, target_template, cv.TM_CCOEFF_NORMED)  # 使用的方法是相关系数
     min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
     CCOEFF = max_val  # 记录此时最匹配区域的相关系数
     left_top = max_loc  # 最匹配模板的区域的左上角坐标，为宽和高，不是x和y坐标
     image = image[left_top[1]:left_top[1] + template_shape[0],
-            left_top[0]:left_top[0] + template_shape[1]]
+                  left_top[0]:left_top[0] + template_shape[1]]
 
     return CCOEFF, image
 

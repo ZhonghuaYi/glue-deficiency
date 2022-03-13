@@ -91,6 +91,7 @@ def key_points(t_kp, matchs, th, th0, min_distance):
     :return:
     """
     match_percent = len(matchs) / len(t_kp)
+    print(f"match percent: {match_percent}")
     if match_percent < th0:
         return 2
     elif th0 <= match_percent < th:
