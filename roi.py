@@ -8,7 +8,7 @@ import numpy as np
 import func
 
 
-def template_match(image, target_template, canny=(50, 120), flag=0):
+def template_match(image, target_template, canny=(50, 120)):
     """
     模板匹配
     :param image: 原图像
@@ -17,15 +17,15 @@ def template_match(image, target_template, canny=(50, 120), flag=0):
     :return: 目标区域与模板的相关系数
     """
     template_shape = target_template.shape
-    # 第一步，将图像缩放到一个统一的大小（较小边为500像素）
-    scale = min(image.shape) / 500
-    new_size = round(image.shape[1] / scale), round(image.shape[0] / scale)  # 这里的size指宽度和高度
-    image = cv.resize(image, new_size)
+    # # 将图像缩放到一个统一的大小（较小边为500像素）
+    # scale = min(image.shape) / 500
+    # new_size = round(image.shape[1] / scale), round(image.shape[0] / scale)  # 这里的size指宽度和高度
+    # image = cv.resize(image, new_size)
 
-    # 第二步，对图像进行高斯平滑
+    # 对图像进行高斯平滑
     image = cv.GaussianBlur(image, (3, 3), sigmaX=1)
 
-    # 第三步，Canny法提取图像边缘
+    # Canny法提取图像边缘
     image = cv.Canny(image, canny[0], canny[1])
 
     # 获取模板和图像的三层下取样金字塔

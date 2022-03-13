@@ -177,13 +177,13 @@ def template_generate(refer_sample, x=(), y=(), flag="canny", canny=(50, 120), t
     :param thresh: thresh的阈值
     :return: 模板图像
     """
-    # 对每张图像缩放，然后求所有图像的平均
+    # 求所有图像的平均
     refer_count = 1
     t = np.empty((1, 1))
     for image in refer_sample:
-        scale = min(image.shape) / 500
-        new_size = round(image.shape[1] / scale), round(image.shape[0] / scale)  # 这里的size指宽度和高度
-        image = cv.resize(image, new_size)
+        # scale = min(image.shape) / 500
+        # new_size = round(image.shape[1] / scale), round(image.shape[0] / scale)  # 这里的size指宽度和高度
+        # image = cv.resize(image, new_size)
         image = image[x[0]:x[1], y[0]:y[1]]
         image = image.astype(np.float32)
         if refer_count == 1:
@@ -196,7 +196,7 @@ def template_generate(refer_sample, x=(), y=(), flag="canny", canny=(50, 120), t
 
     if flag == "canny":
         # 对图像进行高斯平滑
-        t = cv.GaussianBlur(t, (3, 3), sigmaX=1)
+        t = cv.GaussianBlur(t, (7, 7), sigmaX=1)
         # Canny法提取图像边缘
         t = cv.Canny(t, canny[0], canny[1])
 

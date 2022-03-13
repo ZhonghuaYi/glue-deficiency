@@ -253,7 +253,7 @@ def template_match(image, templates, canny, f, thresh):
         if f == "ccoeff":
             # 检测
             CCOEFF, image_roi = roi.template_match(image.copy(), template, canny[t_count])
-
+            # cv.imshow(f"img{t_count}", image_roi)
             print(f"区域{t_count+1}相关系数：{CCOEFF}")
             result = feature.correlation(CCOEFF, thresh[1], thresh[0])
 
@@ -261,17 +261,17 @@ def template_match(image, templates, canny, f, thresh):
             USE_DES = True
             if USE_DES:
                 # 检测
-                CCOEFF, image_roi = roi.template_match(image.copy(), template, canny[t_count], 1)
+                CCOEFF, image_roi = roi.template_match(image.copy(), template, canny[t_count])
                 # 创建sift实例
                 sift = cv.SIFT_create()
                 # 模板的sift特征
                 kp_t, des_t = sift.detectAndCompute(template, None)
-                # template_sift = cv.drawKeypoints(template, kp_t, None)
-                # cv.imshow(f'template{t_count+1}_sift', template_sift)
+                template_sift = cv.drawKeypoints(template, kp_t, None)
+                cv.imshow(f'template{t_count+1}_sift', template_sift)
                 # 图像的roi的sift特征
                 kp_img, des_img = sift.detectAndCompute(image_roi, None)
-                # img_sift = cv.drawKeypoints(image_roi, kp_img, None)
-                # cv.imshow(f'roi{t_count+1}_sift', img_sift)
+                img_sift = cv.drawKeypoints(image_roi, kp_img, None)
+                cv.imshow(f'roi{t_count+1}_sift', img_sift)
                 # 将图像和模板的sift特征进行匹配
                 bf = cv.BFMatcher(crossCheck=True)
                 if kp_img:
@@ -345,17 +345,17 @@ if __name__ == '__main__':
         refer2_root = "./image/refer2/"
         refer2_sample = refer_generate(refer2_root)
 
-        canny1 = (50, 100)
-        canny2 = (100, 200)
+        canny1 = (20, 50)
+        canny2 = (50, 100)
         canny = [canny1, canny2]  # canny法的两个阈值
 
-        f = "ccoeff"
-        thresh = (0.2, 0.6)
+        f = "sift"
+        thresh = (0.1, 0.5)
 
         # 生成模板
-        template1 = template_generate(refer1_sample, x=(50, 300), y=(50, 300), canny=canny1)
+        template1 = template_generate(refer1_sample, x=(200, 700), y=(150, 650), canny=canny1)
         templates.append(template1)
-        template2 = template_generate(refer2_sample, x=(20, 100), y=(220, 470), canny=canny2)
+        template2 = template_generate(refer2_sample, x=(50, 200), y=(400, 950), canny=canny2)
         templates.append(template2)
         # for i in range(len(templates)):
         #     cv.imshow(f"template{i+1}", templates[i])
@@ -405,9 +405,7 @@ if __name__ == '__main__':
 
     count = 1
     for image in sample:
-        # if count < 4:
-        #     count += 1
-        #     continue
         print(f"样本{count}：")
         template_match(image, templates, canny, f, thresh)
         count += 1
+        break
