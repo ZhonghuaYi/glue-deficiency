@@ -275,10 +275,17 @@ def template_match(image, templates, canny, f, thresh):
                 # 将图像和模板的sift特征进行匹配
                 bf = cv.BFMatcher(crossCheck=True)
                 if kp_img:
-                    new_kp_t, new_kp_img, new_des_t, new_des_img, _ = key_point_match(kp_t, kp_img, 10, des_t, des_img)
-                    matchs = bf.match(new_des_t, new_des_img)
-                    # match_image = cv.drawMatches(template, new_kp_t, image_roi, new_kp_img, matchs, None, flags=2)
-                    # cv.imshow(f'match{t_count+1}', match_image)
+                    matchs = bf.match(des_t, des_img)
+                    new_kp_t = []
+                    new_kp_img = []
+                    for m in matchs:
+                        new_kp_t.append(kp_t[m.queryIdx])
+                        new_kp_img.append(kp_img[m.trainIdx])
+                    matchs = key_point_match(new_kp_t, new_kp_img, 10)
+                    kp_t = new_kp_t
+                    kp_img = new_kp_img
+                    match_image = cv.drawMatches(template, new_kp_t, image_roi, new_kp_img, matchs, None, flags=2)
+                    cv.imshow(f'match{t_count+1}', match_image)
                 else:
                     matchs = []
             else:
