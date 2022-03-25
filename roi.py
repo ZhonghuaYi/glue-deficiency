@@ -17,10 +17,8 @@ def template_match(image, target_template, canny=(50, 120)):
     :return: 目标区域与模板的相关系数
     """
     template_shape = target_template.shape
-    # # 将图像缩放到一个统一的大小（较小边为500像素）
-    # scale = min(image.shape) / 500
-    # new_size = round(image.shape[1] / scale), round(image.shape[0] / scale)  # 这里的size指宽度和高度
-    # image = cv.resize(image, new_size)
+    # 将图像缩放到一个统一的大小（较小边为500像素）
+    image = func.image_resize(image, 500)
 
     # 对图像进行高斯平滑
     image = cv.GaussianBlur(image, (3, 3), sigmaX=1)

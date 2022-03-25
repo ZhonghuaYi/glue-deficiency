@@ -3,6 +3,15 @@ import cv2 as cv
 from math import sqrt, pow
 
 
+def image_resize(image, size):
+    if size:
+        scale = min(image.shape) / size
+        new_size = round(image.shape[1] / scale), round(image.shape[0] / scale)  # 这里的size指宽度和高度
+        image = cv.resize(image, new_size)
+
+    return image
+
+
 def get_histogram(in_pic, scale=256):
     """
     获取正则化的直方图
@@ -181,9 +190,9 @@ def template_generate(refer_sample, x=(), y=(), flag="canny", canny=(50, 120), t
     refer_count = 1
     t = np.empty((1, 1))
     for image in refer_sample:
-        # scale = min(image.shape) / 500
-        # new_size = round(image.shape[1] / scale), round(image.shape[0] / scale)  # 这里的size指宽度和高度
-        # image = cv.resize(image, new_size)
+        scale = min(image.shape) / 500
+        new_size = round(image.shape[1] / scale), round(image.shape[0] / scale)  # 这里的size指宽度和高度
+        image = cv.resize(image, new_size)
         image = image[x[0]:x[1], y[0]:y[1]]
         image = image.astype(np.float32)
         if refer_count == 1:

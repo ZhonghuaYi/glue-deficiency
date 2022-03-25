@@ -3,6 +3,7 @@ import cv2 as cv
 import numpy as np
 from matplotlib import pyplot as plt
 
+import func
 from func import *
 import roi
 import feature
@@ -253,7 +254,7 @@ def template_match(image, templates, canny, f, thresh):
         if f == "ccoeff":
             # 检测
             CCOEFF, image_roi = roi.template_match(image.copy(), template, canny[t_count])
-            # cv.imshow(f"img{t_count}", image_roi)
+            cv.imshow(f"img{t_count}", image_roi)
             print(f"区域{t_count+1}相关系数：{CCOEFF}")
             result = feature.correlation(CCOEFF, thresh[1], thresh[0])
 
@@ -332,13 +333,65 @@ def template_match(image, templates, canny, f, thresh):
     cv.waitKey(0)
 
 
+def sift_match(image, templates, canny):
+    start_time = time.time()  # 设定程序开始运行时间
+
+    t_count = 0
+    # 得到边缘图像
+    image = func.image_resize(image, 500)
+    image = cv.GaussianBlur(image, (3, 3), sigmaX=1)
+    image = cv.Canny(image, 100, 200)
+    for template in templates:
+        result = None
+
+        # 创建sift实例
+        sift = cv.SIFT_create()
+        # 模板的sift特征
+        kp_t, des_t = sift.detectAndCompute(template, None)
+        # template_sift = cv.drawKeypoints(template, kp_t, None)
+        # cv.imshow(f'template{t_count + 1}_sift', template_sift)
+        # 图像的的sift特征
+        kp_img, des_img = sift.detectAndCompute(image, None)
+        # img_sift = cv.drawKeypoints(image, kp_img, None)
+        # cv.imshow(f'img{t_count + 1}_sift', img_sift)
+        # 设置FLANN匹配器参数，定义FLANN匹配器，使用 KNN 算法实现匹配
+        index_params = dict(algorithm=0, trees=5)
+        search_params = dict(checks=50)
+        # 将图像和模板的sift特征进行匹配
+        flann = cv.FlannBasedMatcher(index_params, search_params)
+        if kp_img:
+            matches = flann.knnMatch(des_t, des_img, k=2)
+            # 根据matches生成相同长度的matchesMask列表，列表元素为[0,0]
+            matches_mask = [[0, 0] for i in range(len(matches))]
+            # 去除错误匹配
+            for i, (m, n) in enumerate(matches):
+                if m.distance < 0.7 * n.distance:
+                    matches_mask[i] = [1, 0]
+            # 将图像显示
+            # matchColor是两图的匹配连接线，连接线与matchesMask相关
+            # singlePointColor是勾画关键点
+            drawParams = dict(matchColor=(0, 255, 0),
+                              singlePointColor=(255, 0, 0),
+                              matchesMask=matches_mask[:50],
+                              flags=0)
+            result_image = cv.drawMatchesKnn(template, kp_t, image, kp_img, matches[:50], None, **drawParams)
+            cv.imshow(f'match{t_count + 1}', result_image)
+        else:
+            matches = []
+            result = 2
+
+        result_explain(result, t_count + 1)
+        t_count += 1
+
+    end_time = time.time()  # 记录程序结束运行时间
+    print('运行时间：', end_time - start_time, "s")
+    print("————————————")
+    cv.waitKey(0)
+
+
 if __name__ == '__main__':
     sample_set = 1
-    sample = None
     templates = []
-    canny = []
-    f = ""
-    thresh = ()
     if sample_set == 1:
         # 读取样本
         sample_root = "./image/sample/"
@@ -352,17 +405,21 @@ if __name__ == '__main__':
         refer2_root = "./image/refer2/"
         refer2_sample = refer_generate(refer2_root)
 
-        canny1 = (20, 50)
-        canny2 = (50, 100)
+        # canny1 = (20, 50)
+        # canny2 = (50, 100)
+        canny1 = (50, 100)
+        canny2 = (100, 200)  # 500x下的canny
         canny = [canny1, canny2]  # canny法的两个阈值
 
-        f = "sift"
+        f = "ccoeff"
         thresh = (0.1, 0.5)
 
         # 生成模板
-        template1 = template_generate(refer1_sample, x=(200, 700), y=(150, 650), canny=canny1)
+        # template1 = template_generate(refer1_sample, x=(200, 700), y=(150, 650), canny=canny1)
+        template1 = template_generate(refer1_sample, x=(50, 300), y=(50, 300), canny=canny1)  # 缩放到500x下的模板
         templates.append(template1)
-        template2 = template_generate(refer2_sample, x=(50, 200), y=(400, 950), canny=canny2)
+        # template2 = template_generate(refer2_sample, x=(50, 200), y=(400, 950), canny=canny2)
+        template2 = template_generate(refer2_sample, x=(20, 100), y=(220, 470), canny=canny2)  # 缩放到500x下的模板
         templates.append(template2)
         # for i in range(len(templates)):
         #     cv.imshow(f"template{i+1}", templates[i])
@@ -413,6 +470,6 @@ if __name__ == '__main__':
     count = 1
     for image in sample:
         print(f"样本{count}：")
-        template_match(image, templates, canny, f, thresh)
+        # template_match(image, templates, canny, f, thresh)
+        sift_match(image, templates, canny)
         count += 1
-        break
