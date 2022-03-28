@@ -20,8 +20,8 @@ def template_match(image, target_template, canny=(50, 120)):
     # 将图像缩放到一个统一的大小（较小边为500像素）
     image = func.image_resize(image, 500)
 
-    # 对图像进行高斯平滑
-    image = cv.GaussianBlur(image, (3, 3), sigmaX=1)
+    # 对图像进行平滑
+    image = cv.medianBlur(image, 5)
 
     # Canny法提取图像边缘
     image = cv.Canny(image, canny[0], canny[1])

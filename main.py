@@ -470,6 +470,7 @@ if __name__ == '__main__':
     count = 1
     for image in sample:
         print(f"样本{count}：")
-        # template_match(image, templates, canny, f, thresh)
-        sift_match(image, templates, canny)
+        template_match(image, templates, canny, f, thresh)
+        # sift_match(image, templates, canny)
         count += 1
+        break

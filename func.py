@@ -205,7 +205,7 @@ def template_generate(refer_sample, x=(), y=(), flag="canny", canny=(50, 120), t
 
     if flag == "canny":
         # 对图像进行高斯平滑
-        t = cv.GaussianBlur(t, (7, 7), sigmaX=1)
+        t = cv.medianBlur(t, 5)
         # Canny法提取图像边缘
         t = cv.Canny(t, canny[0], canny[1])
 
