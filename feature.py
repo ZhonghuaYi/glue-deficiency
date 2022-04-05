@@ -80,7 +80,7 @@ def defect2_hough(img_shape, lines, max_lines):
         return False
 
 
-def key_points(t_kp, matchs, th, th0, min_distance):
+def key_points(t_kp, t_img, matchs, th, th0, min_distance):
     """
     根据特征点的匹配情况返回判断结果
     :param t_kp: 模板的特征点
@@ -90,7 +90,7 @@ def key_points(t_kp, matchs, th, th0, min_distance):
     :param min_distance: 匹配距离的平均值的阈值
     :return:
     """
-    match_percent = len(matchs) / len(t_kp)
+    match_percent = len(matchs) / (len(t_kp)+len(t_img)-len(matchs))
     print(f"match percent: {match_percent}")
     if match_percent < th0:
         return 2

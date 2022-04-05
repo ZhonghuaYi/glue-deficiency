@@ -3,12 +3,13 @@
 """
 
 import cv2 as cv
+import matplotlib.pyplot as plt
 import numpy as np
 
 import func
 
 
-def template_match(image, target_template, canny=(50, 120)):
+def template_match(image, target_template, canny=(50, 120), flag=0):
     """
     模板匹配
     :param image: 原图像
@@ -16,12 +17,15 @@ def template_match(image, target_template, canny=(50, 120)):
     :param canny: Canny法的低阈值和高阈值
     :return: 目标区域与模板的相关系数
     """
+    global image_no_edge
     template_shape = target_template.shape
     # 将图像缩放到一个统一的大小（较小边为500像素）
     image = func.image_resize(image, 500)
 
     # 对图像进行平滑
     image = cv.medianBlur(image, 5)
+    if flag == 1:
+        image_no_edge = image
 
     # Canny法提取图像边缘
     image = cv.Canny(image, canny[0], canny[1])
@@ -63,37 +67,14 @@ def template_match(image, target_template, canny=(50, 120)):
     min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
     CCOEFF = max_val  # 记录此时最匹配区域的相关系数
     left_top = max_loc  # 最匹配模板的区域的左上角坐标，为宽和高，不是x和y坐标
-    image = image[left_top[1]:left_top[1] + template_shape[0],
-                  left_top[0]:left_top[0] + template_shape[1]]
+    if flag == 0:
+        image = image[left_top[1]:left_top[1] + template_shape[0],
+                      left_top[0]:left_top[0] + template_shape[1]]
+    elif flag == 1:
+        image = image_no_edge[left_top[1]:left_top[1] + template_shape[0],
+                              left_top[0]:left_top[0] + template_shape[1]]
 
     return CCOEFF, image
-
-
-def hausdorff_match(template, image, canny=(50, 120)):
-    from hausdorff import hausdorff_distance
-    # 第一步，将图像缩放到一个统一的大小（较小边为500像素）
-    scale = min(image.shape) / 500
-    new_size = round(image.shape[1] / scale), round(image.shape[0] / scale)  # 这里的size指宽度和高度
-    image = cv.resize(image, new_size)
-
-    # 第二步，对图像进行高斯平滑
-    image = cv.GaussianBlur(image, (3, 3), sigmaX=1)
-
-    # 第三步，Canny法提取图像边缘
-    image = cv.Canny(image, canny[0], canny[1])
-    t_shape = template.shape
-    img_shape = image.shape
-    min_distance = np.inf
-    min_ind = [0, 0]
-    for i in range(0, img_shape[0] - t_shape[0]):
-        for j in range(0, img_shape[1] - img_shape[1]):
-            h_distance = hausdorff_distance(template, image[i:i + t_shape[0], j:j + t_shape[1]])
-            if h_distance < min_distance:
-                min_distance = h_distance
-                min_ind = [i, j]
-
-    i, j = min_ind
-    return image[i:i + t_shape[0], j:j + t_shape[1]]
 
 
 def threshold_segment(image, area_percent, pre_area_num, structure_element):

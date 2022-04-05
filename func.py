@@ -157,7 +157,7 @@ def area_segment(img, pre_area_num):
                 region_area = neighbor_expand(x1, y1, value, region_area)
         return region_area
 
-    region_value = np.linspace(start=2, stop=255, num=pre_area_num, dtype=np.uint8)
+    region_value = 1
     region_num = 0
     regions = []
     region_start = []
@@ -167,8 +167,9 @@ def area_segment(img, pre_area_num):
             if img[i][j] == 0:
                 region = [0, 0]  # 区域的数值与面积
                 region_start.append((i, j))
-                region[1] = neighbor_expand(i, j, region_value[region_num], region[1])
-                region[0] = region_value[region_num]
+                region[1] = neighbor_expand(i, j, region_value, region[1])
+                region[0] = region_value
+                region_value += 1
                 region_num += 1
                 regions.append(region)
 
@@ -203,17 +204,18 @@ def template_generate(refer_sample, x=(), y=(), flag="canny", canny=(50, 120), t
     t /= refer_count
     t = t.astype(np.uint8)
 
+    # 对图像进行平滑
+    t = cv.medianBlur(t, 5)
+    gray_t = t
+
     if flag == "canny":
-        # 对图像进行高斯平滑
-        t = cv.medianBlur(t, 5)
         # Canny法提取图像边缘
         t = cv.Canny(t, canny[0], canny[1])
 
     elif flag == "thresh":
-        t = cv.medianBlur(t, 3)
         __, t = cv.threshold(t, thresh, 255, cv.THRESH_BINARY)
 
-    return t
+    return t, gray_t
 
 
 def gaussian_pyramid(img, flag, num):
