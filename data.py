@@ -21,6 +21,7 @@ if sample_set == 1:
         area_percent = 0.3
         pre_area_num = 12
         normal_area = 420
+        thresh = 0.9
 
         # 用于形态学计算的矩形结构元素
         structure_element = cv.getStructuringElement(cv.MORPH_RECT, (7, 7))

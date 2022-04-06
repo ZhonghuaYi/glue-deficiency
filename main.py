@@ -7,7 +7,7 @@ import roi
 import feature
 
 
-def thresh_segment(image, area_percent, pre_area_num, structure_element):
+def thresh_segment(image, area_percent, pre_area_num, structure_element, thresh):
     start_time = time.time()  # 设定程序开始运行时间
 
     region_area, image = roi.threshold_segment(image, area_percent, pre_area_num, structure_element)
@@ -17,7 +17,7 @@ def thresh_segment(image, area_percent, pre_area_num, structure_element):
     # cv.imshow(window_name, image)
 
     # 根据特征判断此样本是否合格（合格为True）
-    result = feature.region_area(region_area, normal_area)
+    result = feature.region_area(region_area, normal_area, thresh)
 
     print("判断结果：", result)
     end_time = time.time()  # 记录程序结束运行时间

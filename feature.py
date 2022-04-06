@@ -19,14 +19,14 @@ def correlation(ccoeff, th, th0):
         return 1
 
 
-def region_area(area, normal_area):
+def region_area(area, normal_area, thresh):
     """
     用检测到的区域与没有缺陷时的区域面积比值判断图像是否有缺陷
     :param area: 检测到的区域面积
     :param normal_area: 没有缺陷时的区域的面积
     :return: True表示图像没有缺陷
     """
-    if float(area) / normal_area < 0.9:
+    if float(area) / normal_area < thresh:
         return False
 
     else:
