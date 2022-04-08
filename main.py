@@ -13,8 +13,8 @@ def thresh_segment(image, area_percent, pre_area_num, structure_element, thresh)
     region_area, image = roi.threshold_segment(image, area_percent, pre_area_num, structure_element)
 
     # 显示最终分离出的区域的图像
-    # window_name = 'img' + str(count)  # 图像窗口的名称
-    # cv.imshow(window_name, image)
+    window_name = 'img' + str(count)  # 图像窗口的名称
+    cv.imshow(window_name, image)
 
     # 根据特征判断此样本是否合格（合格为True）
     result = feature.region_area(region_area, normal_area, thresh)
@@ -37,7 +37,7 @@ def template_match(image, edge_templates, templates, canny, f, thresh):
         if f == "ccoeff":
             # 检测
             CCOEFF, image_roi = roi.template_match(image.copy(), template, canny[t_count])
-            cv.imshow(f"img{t_count}", image_roi)
+            # cv.imshow(f"img{t_count}", image_roi)
             print(f"区域{t_count+1}相关系数：{CCOEFF}")
             result = feature.correlation(CCOEFF, thresh[1], thresh[0])
 
@@ -91,18 +91,21 @@ def template_match(image, edge_templates, templates, canny, f, thresh):
             result = feature.key_points(kp_t, kp_img, matchs, thresh[1], thresh[0], 1000)
 
         # 霍夫不太适合不同缺陷的同时检测
-        # elif f == "hough":
-        #     drawing = np.zeros(image.shape, dtype=np.uint8)
-        #     lines = defect1_hough_line(image)
-        #     drawing = draw_line(drawing, lines)
-        #     cv.imshow('hough1', drawing)
-        #     result1 = feature.defect1_hough(image.shape, lines, 10)
-        #
-        #     drawing = np.zeros(image.shape, dtype=np.uint8)
-        #     lines = defect2_hough_line(image)
-        #     drawing = draw_line(drawing, lines)
-        #     cv.imshow('hough2', drawing)
-        #     result2 = feature.defect2_hough(image.shape, lines, 10)
+        elif f == "hough":
+            # 检测
+            CCOEFF, image_roi = roi.template_match(image.copy(), template, canny[t_count])
+            if t_count == 0:
+                drawing = np.zeros(image_roi.shape, dtype=np.uint8)
+                lines = defect1_hough_line(image_roi)
+                drawing = draw_line(drawing, lines)
+                cv.imshow('hough1', drawing)
+                result = feature.defect1_hough(image_roi.shape, lines, 4)
+            elif t_count == 1:
+                drawing = np.zeros(image_roi.shape, dtype=np.uint8)
+                lines = defect2_hough_line(image_roi)
+                drawing = draw_line(drawing, lines)
+                cv.imshow('hough2', drawing)
+                result = feature.defect2_hough(image_roi.shape, lines, 10)
 
         result_explain(result, t_count+1)
         t_count += 1
@@ -173,10 +176,14 @@ if __name__ == '__main__':
 
     count = 1
     for image in sample:
+        if count < 4:
+            count += 1
+            continue
         print(f"样本{count}：")
-        # thresh_segment(image, area_percent, pre_area_num, structure_element)
+        # thresh_segment(image, area_percent, pre_area_num, structure_element, thresh)
         template_match(image, edge_templates, templates, canny, f, thresh)
         # sift_match(image, templates, canny)
         count += 1
-        if count == 3:
-            break
+
+    cv.waitKey(0)
+    cv.destroyAllWindows()

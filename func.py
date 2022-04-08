@@ -301,7 +301,7 @@ def draw_line(drawing, lines):
 
 
 def defect1_hough_line(img):
-    lines = cv.HoughLinesP(img, 1, np.pi / 180, 5, minLineLength=5, maxLineGap=2)
+    lines = cv.HoughLinesP(img, 1, np.pi / 180, 5, minLineLength=3, maxLineGap=2)
     out = []
     for line in lines:
         x1, y1, x2, y2 = line[0]
@@ -318,7 +318,7 @@ def defect1_hough_line(img):
 
 
 def defect2_hough_line(img):
-    lines = cv.HoughLinesP(img, 1, np.pi / 180, 5, minLineLength=3, maxLineGap=5)
+    lines = cv.HoughLinesP(img, 1, np.pi / 180, 10, minLineLength=2, maxLineGap=5)
     out = []
     for line in lines:
         x1, y1, x2, y2 = line[0]
