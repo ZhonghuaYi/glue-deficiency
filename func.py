@@ -129,7 +129,7 @@ def threshold_segment(img, threshold):
     return out.astype(img.dtype)
 
 
-def area_segment(img, pre_area_num):
+def area_segment(img):
     """
     图像的区域分割
     :param pre_area_num: 初始假设的区域数量，应略多于实际区域数量

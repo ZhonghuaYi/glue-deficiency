@@ -7,14 +7,15 @@ import roi
 import feature
 
 
-def thresh_segment(image, area_percent, pre_area_num, structure_element, thresh):
+def thresh_segment(image, area_percent, structure_element, normal_area, thresh):
     start_time = time.time()  # 设定程序开始运行时间
 
-    region_area, image = roi.threshold_segment(image, area_percent, pre_area_num, structure_element)
+    
+    image = image[0:800, 0:800]
+    region_area, image = roi.threshold_segment(image, area_percent, structure_element)
 
     # 显示最终分离出的区域的图像
-    window_name = 'img' + str(count)  # 图像窗口的名称
-    cv.imshow(window_name, image)
+    cv.imshow("image", image)
 
     # 根据特征判断此样本是否合格（合格为True）
     result = feature.region_area(region_area, normal_area, thresh)
@@ -180,7 +181,7 @@ if __name__ == '__main__':
             count += 1
             continue
         print(f"样本{count}：")
-        # thresh_segment(image, area_percent, pre_area_num, structure_element, thresh)
+        # thresh_segment(image, area_percent, structure_element, thresh)
         template_match(image, edge_templates, templates, canny, f, thresh)
         # sift_match(image, templates, canny)
         count += 1

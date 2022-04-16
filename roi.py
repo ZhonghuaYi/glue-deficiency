@@ -3,7 +3,6 @@
 """
 
 import cv2 as cv
-import matplotlib.pyplot as plt
 import numpy as np
 
 import func
@@ -77,7 +76,7 @@ def template_match(image, target_template, canny=(50, 120), flag=0):
     return CCOEFF, image
 
 
-def threshold_segment(image, area_percent, pre_area_num, structure_element):
+def threshold_segment(image, area_percent, structure_element):
     """
     阈值分割
     :param image: 原图像
@@ -90,7 +89,6 @@ def threshold_segment(image, area_percent, pre_area_num, structure_element):
     # 在参考图像中，当手动阈值在37时，阈值分割效果明显。于是考虑到灰度小于37的区域大概面积占比是0.3，
     # 于是将图像中灰度值较低的30%区域分割出来。这里利用了cdf，它本身是直方图的累积分布，因此只需要寻找
     # cdf中最接近0.3的位置，其索引即是能够将30%灰度比较低的区域分割出来的阈值
-    image = image[0:800, 0:800]
     hist = func.get_histogram(image)
     img_cdf = func.cdf(hist) / 255.  # 正则化后的cdf，映射到了（0，1）范围
     index = (np.abs(img_cdf - area_percent)).argmin()  # index即为阈值
@@ -115,7 +113,7 @@ def threshold_segment(image, area_percent, pre_area_num, structure_element):
     th, image = cv.threshold(image, index, 255, cv.THRESH_BINARY)  # 官方的阈值分割函数
 
     # 第三步，将图像分成若干个区域
-    regions, region_start = func.area_segment(image, pre_area_num)
+    regions, region_start = func.area_segment(image)
 
     # 第四步，将面积第二的区域提取出来
     ind = np.argsort(regions[:, 1])[-2]

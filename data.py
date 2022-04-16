@@ -2,24 +2,23 @@ from func import *
 
 sample_set = 1
 if sample_set == 1:
-    edge_templates = []
-    templates = []
 
     segment = "template_match"
 
-    # 读取样本
+    # 样本图片的位置
     sample_root = "./image/sample/"
+    refer1_root = "./image/refer1/"
+    refer2_root = "./image/refer2/"
+
+    # 读取样本
     sample = sample_generate(sample_root)
 
     # 读取参考样本
-    refer1_root = "./image/refer1/"
     refer1_sample = refer_generate(refer1_root)
-    refer2_root = "./image/refer2/"
     refer2_sample = refer_generate(refer2_root)
 
     if segment == "thresh_segment":
         area_percent = 0.3
-        pre_area_num = 12
         normal_area = 420
         thresh = 0.9
 
@@ -27,7 +26,9 @@ if sample_set == 1:
         structure_element = cv.getStructuringElement(cv.MORPH_RECT, (7, 7))
 
     elif segment == "template_match":
-
+        edge_templates = []
+        templates = []
+        
         canny1 = (50, 100)
         canny2 = (100, 200)  # 500x下的canny
         canny = [canny1, canny2]  # canny法的两个阈值
@@ -36,8 +37,8 @@ if sample_set == 1:
         thresh = (0.1, 0.75)
 
         # 生成模板
-        edge_template1, template1 = template_generate(refer1_sample, x=(50, 300), y=(50, 300), canny=canny1)
-        edge_template2, template2 = template_generate(refer2_sample, x=(20, 100), y=(220, 470), canny=canny2)
+        template1, edge_template1 = template_generate(refer1_sample, x=(50, 300), y=(50, 300), canny=canny1)
+        template2, edge_template2 = template_generate(refer2_sample, x=(20, 100), y=(220, 470), canny=canny2)
         edge_templates.append(edge_template1)
         edge_templates.append(edge_template2)
         templates.append(template1)
