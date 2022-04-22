@@ -215,7 +215,7 @@ def template_generate(refer_sample, x=(), y=(), flag="canny", canny=(50, 120), t
     elif flag == "thresh":
         __, t = cv.threshold(t, thresh, 255, cv.THRESH_BINARY)
 
-    return t, gray_t
+    return gray_t, t
 
 
 def gaussian_pyramid(img, flag, num):

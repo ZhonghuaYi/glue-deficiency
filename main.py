@@ -9,7 +9,6 @@ import feature
 
 def thresh_segment(image, area_percent, structure_element, normal_area, thresh):
     start_time = time.time()  # 设定程序开始运行时间
-
     
     image = image[0:800, 0:800]
     region_area, image = roi.threshold_segment(image, area_percent, structure_element)
@@ -117,17 +116,14 @@ def template_match(image, edge_templates, templates, canny, f, thresh):
     cv.waitKey(0)
 
 
-def sift_match(image, templates, canny):
+def sift_match(image, templates):
     start_time = time.time()  # 设定程序开始运行时间
 
     t_count = 0
-    # 得到边缘图像
     image = func.image_resize(image, 500)
-    image = cv.GaussianBlur(image, (3, 3), sigmaX=1)
-    image = cv.Canny(image, 100, 200)
+    image = cv.medianBlur(image, 5)
     for template in templates:
         result = None
-
         # 创建sift实例
         sift = cv.SIFT_create()
         # 模板的sift特征
@@ -155,7 +151,7 @@ def sift_match(image, templates, canny):
             # matchColor是两图的匹配连接线，连接线与matchesMask相关
             # singlePointColor是勾画关键点
             drawParams = dict(matchColor=(0, 255, 0),
-                              singlePointColor=(255, 0, 0),
+                              singlePointColor=(0, 0, 255),
                               matchesMask=matches_mask[:50],
                               flags=0)
             result_image = cv.drawMatchesKnn(template, kp_t, image, kp_img, matches[:50], None, **drawParams)
@@ -174,16 +170,12 @@ def sift_match(image, templates, canny):
 
 
 if __name__ == '__main__':
-
     count = 1
     for image in sample:
-        if count < 4:
-            count += 1
-            continue
         print(f"样本{count}：")
         # thresh_segment(image, area_percent, structure_element, thresh)
-        template_match(image, edge_templates, templates, canny, f, thresh)
-        # sift_match(image, templates, canny)
+        # template_match(image, edge_templates, templates, canny, f, thresh)
+        sift_match(image, templates)
         count += 1
 
     cv.waitKey(0)
