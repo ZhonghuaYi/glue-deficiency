@@ -1,5 +1,6 @@
 import time
 
+import data
 from data import *
 import func
 from func import *
@@ -170,12 +171,14 @@ def sift_match(image, templates):
 
 
 if __name__ == '__main__':
+    data = data.DataLoader()
+    data.load(sample_set=1, segment="template_match", f="sift")
     count = 1
-    for image in sample:
+    for image in data.sample:
         print(f"样本{count}：")
-        # thresh_segment(image, area_percent, structure_element, thresh)
-        # template_match(image, edge_templates, templates, canny, f, thresh)
-        sift_match(image, templates)
+        thresh_segment(image, data.area_percent, data.structure_element, data.normal_area, data.thresh)
+        # template_match(image, data.edge_templates, data.templates, data.canny, data.f, thresh)
+        # sift_match(image, data.templates)
         count += 1
 
     cv.waitKey(0)
