@@ -171,13 +171,14 @@ def sift_match(image, templates):
 
 
 if __name__ == '__main__':
-    data = data.DataLoader()
-    data.load(sample_set=1, segment="template_match", f="sift")
+    samples = data.DataLoader()
+    samples.load(sample_set=1, segment="template_match", f="hough")
     count = 1
-    for image in data.sample:
+    for image in samples.sample:
         print(f"样本{count}：")
-        thresh_segment(image, data.area_percent, data.structure_element, data.normal_area, data.thresh)
-        # template_match(image, data.edge_templates, data.templates, data.canny, data.f, thresh)
+        # thresh_segment(image, data.area_percent, data.structure_element, data.normal_area, data.thresh)
+        template_match(image, samples.edge_templates, samples.templates, samples.canny, samples.f,
+                       samples.thresh)
         # sift_match(image, data.templates)
         count += 1
 
