@@ -39,30 +39,38 @@ def template_match(image, target_template, canny=(50, 120), flag=0):
     match_angle = 0  # 最匹配的角度
     for i in range(len(t_pyramid)):
         max_ccoeff = 0
-        angle_step = (angle_interval[1] - angle_interval[0]) / (angle_num[i] - 1)
+        angle_step = (angle_interval[1] - angle_interval[0]) / (angle_num[i] -
+                                                                1)
         for j in range(angle_num[i]):
             # 得到角度
             angle = angle_interval[0] + j * angle_step
             # 旋转模板
-            M = cv.getRotationMatrix2D((t_pyramid[i].shape[1] / 2, t_pyramid[i].shape[0] / 2), angle, 1)
-            t = cv.warpAffine(t_pyramid[i], M, (t_pyramid[i].shape[1], t_pyramid[i].shape[0]))
+            M = cv.getRotationMatrix2D(
+                (t_pyramid[i].shape[1] / 2, t_pyramid[i].shape[0] / 2), angle,
+                1)
+            t = cv.warpAffine(t_pyramid[i], M,
+                              (t_pyramid[i].shape[1], t_pyramid[i].shape[0]))
             # 匹配区域
-            res = cv.matchTemplate(img_pyramid[i], t, cv.TM_CCOEFF_NORMED)  # 使用的方法是相关系数
+            res = cv.matchTemplate(img_pyramid[i], t,
+                                   cv.TM_CCOEFF_NORMED)  # 使用的方法是相关系数
             min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
             CCOEFF = max_val  # 记录此时最匹配区域的相关系数
             if CCOEFF >= max_ccoeff:
                 max_ccoeff = CCOEFF
                 match_angle = angle
         if i < len(t_pyramid) - 1:
-            angle_interval = (match_angle - angle_step, match_angle + angle_step)
+            angle_interval = (match_angle - angle_step,
+                              match_angle + angle_step)
 
     # print(match_angle)
     # 将原图像旋转-match_angle度并与原模板匹配
-    M = cv.getRotationMatrix2D((image.shape[1] / 2, image.shape[0] / 2), -match_angle, 1)
+    M = cv.getRotationMatrix2D((image.shape[1] / 2, image.shape[0] / 2),
+                               -match_angle, 1)
     image = cv.warpAffine(image, M, (image.shape[1], image.shape[0]))
     compare = np.ones(image.shape, dtype=image.dtype) * 128
     image = np.array(image >= compare).astype(image.dtype) * 255
-    res = cv.matchTemplate(image, target_template, cv.TM_CCOEFF_NORMED)  # 使用的方法是相关系数
+    res = cv.matchTemplate(image, target_template,
+                           cv.TM_CCOEFF_NORMED)  # 使用的方法是相关系数
     min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
     CCOEFF = max_val  # 记录此时最匹配区域的相关系数
     left_top = max_loc  # 最匹配模板的区域的左上角坐标，为宽和高，不是x和y坐标
@@ -101,13 +109,15 @@ def threshold_segment(image, area_percent, structure_element):
     image = cv.dilate(image, structure_element)
     # resize到400x400后再中值滤波，然后腐蚀
     scale = min(image.shape) / 400
-    new_size = round(image.shape[1] / scale), round(image.shape[0] / scale)  # 这里的size指宽度和高度
+    new_size = round(image.shape[1] / scale), round(image.shape[0] /
+                                                    scale)  # 这里的size指宽度和高度
     image = cv.resize(image, new_size)
     image = cv.medianBlur(image, 3)
     image = cv.dilate(image, structure_element)
     # resize到70x70后，阈值分割（这里只能最大缩小到70，否则会爆栈，这和内存有关）
     scale = min(image.shape) / 70
-    new_size = round(image.shape[1] / scale), round(image.shape[0] / scale)  # 这里的size指宽度和高度
+    new_size = round(image.shape[1] / scale), round(image.shape[0] /
+                                                    scale)  # 这里的size指宽度和高度
     image = cv.resize(image, new_size)
     # image = threshold_segment(image, index)  # 自己写的阈值分割函数
     th, image = cv.threshold(image, index, 255, cv.THRESH_BINARY)  # 官方的阈值分割函数
@@ -120,6 +130,7 @@ def threshold_segment(image, area_percent, structure_element):
     target_region_value = regions[ind, 0]  # 获取到面积第二的区域的值
     region_area = regions[ind, 1]  # 将该区域的面积记录下来
     compare = np.ones(image.shape, dtype=image.dtype) * target_region_value
-    image = np.array(image != compare).astype(image.dtype) * 255  # 将数值为target_area_value的区域分离出来
+    image = np.array(image != compare).astype(
+        image.dtype) * 255  # 将数值为target_area_value的区域分离出来
 
     return region_area, image

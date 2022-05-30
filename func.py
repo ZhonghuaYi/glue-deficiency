@@ -6,7 +6,8 @@ from math import sqrt, pow
 def image_resize(image, size):
     if size:
         scale = min(image.shape) / size
-        new_size = round(image.shape[1] / scale), round(image.shape[0] / scale)  # 这里的size指宽度和高度
+        new_size = round(image.shape[1] / scale), round(
+            image.shape[0] / scale)  # 这里的size指宽度和高度
         image = cv.resize(image, new_size)
 
     return image
@@ -136,7 +137,6 @@ def area_segment(img):
     :param img: 输入图像
     :return: （区域数值，区域面积）(ndarray)， 区域起始坐标
     """
-
     def neighbor_expand(x, y, value, region_area):
         """
         此函数用于递归确定区域
@@ -149,9 +149,10 @@ def area_segment(img):
         img[x][y] = value
         region_area += 1
         # ind为遍历的邻域顺序
-        ind = ((x, y+ 1), (x + 1, y), (x, y - 1), (x - 1, y))
+        ind = ((x, y + 1), (x + 1, y), (x, y - 1), (x - 1, y))
         for x1, y1 in ind:
-            if (x1 < 0) or (x1 >= img_shape[0]) or (y1 < 0) or (y1 >= img_shape[1]):
+            if (x1 < 0) or (x1 >= img_shape[0]) or (y1 < 0) or (y1 >=
+                                                                img_shape[1]):
                 continue
             if img[x1][y1] == 0:
                 region_area = neighbor_expand(x1, y1, value, region_area)
@@ -176,7 +177,12 @@ def area_segment(img):
     return np.array(regions), region_start
 
 
-def template_generate(refer_sample, x=(), y=(), flag="canny", canny=(50, 120), thresh=50):
+def template_generate(refer_sample,
+                      x=(),
+                      y=(),
+                      flag="canny",
+                      canny=(50, 120),
+                      thresh=50):
     """
     从参考样本中截取某个区域作为模板
     :param refer_sample: 参考样本集
@@ -192,7 +198,8 @@ def template_generate(refer_sample, x=(), y=(), flag="canny", canny=(50, 120), t
     t = np.empty((1, 1))
     for image in refer_sample:
         scale = min(image.shape) / 500
-        new_size = round(image.shape[1] / scale), round(image.shape[0] / scale)  # 这里的size指宽度和高度
+        new_size = round(image.shape[1] / scale), round(
+            image.shape[0] / scale)  # 这里的size指宽度和高度
         image = cv.resize(image, new_size)
         image = image[x[0]:x[1], y[0]:y[1]]
         image = image.astype(np.float32)
@@ -244,7 +251,9 @@ def nearest_point(point, pt_set):
     min_distance = 1000000
     index = 0
     for i in range(len(pt_set)):
-        distance = sqrt(pow(point.pt[0]-pt_set[i].pt[0], 2) + pow(point.pt[1]-pt_set[i].pt[1], 2))
+        distance = sqrt(
+            pow(point.pt[0] - pt_set[i].pt[0], 2) +
+            pow(point.pt[1] - pt_set[i].pt[1], 2))
         if distance < min_distance:
             min_distance = distance
             index = i
@@ -252,7 +261,11 @@ def nearest_point(point, pt_set):
     return min_distance, index
 
 
-def key_point_match(kp_t, kp_img, th, des_t=np.empty((0, 0)), des_img=np.empty((0, 0))):
+def key_point_match(kp_t,
+                    kp_img,
+                    th,
+                    des_t=np.empty((0, 0)),
+                    des_img=np.empty((0, 0))):
     matchs = []
     if len(des_t) and len(des_img):
         new_kp_t = []
@@ -301,16 +314,17 @@ def draw_line(drawing, lines):
 
 
 def defect1_hough_line(img):
-    lines = cv.HoughLinesP(img, 1, np.pi / 180, 5, minLineLength=3, maxLineGap=2)
+    lines = cv.HoughLinesP(img,
+                           1,
+                           np.pi / 180,
+                           5,
+                           minLineLength=3,
+                           maxLineGap=2)
     out = []
     for line in lines:
         x1, y1, x2, y2 = line[0]
         if x1 != x2:
-            if y2 >= y1:
-                k = (y2 - y1) / (x2 - x1)
-            else:
-                k = (y1 - y2) / (x1 - x2)
-
+            k = abs((y2 - y1) / (x2 - x1))
             if 0.3 < k < 3:
                 out.append(line[0].tolist())
 
@@ -318,13 +332,18 @@ def defect1_hough_line(img):
 
 
 def defect2_hough_line(img):
-    lines = cv.HoughLinesP(img, 1, np.pi / 180, 10, minLineLength=2, maxLineGap=5)
+    lines = cv.HoughLinesP(img,
+                           1,
+                           np.pi / 180,
+                           10,
+                           minLineLength=2,
+                           maxLineGap=5)
     out = []
     for line in lines:
         x1, y1, x2, y2 = line[0]
         divide = x2 - x1
         if divide != 0:
-            k = abs((y2-y1) / divide)
+            k = abs((y2 - y1) / divide)
             if k < 0.5:
                 out.append(line[0].tolist())
 
@@ -343,5 +362,3 @@ def result_explain(result, n):
         message = message + f"错误的结果码"
 
     print(message)
-
-

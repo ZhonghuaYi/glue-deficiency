@@ -8,11 +8,13 @@ import roi
 import feature
 
 
-def thresh_segment(image, area_percent, structure_element, normal_area, thresh):
+def thresh_segment(image, area_percent, structure_element, normal_area,
+                   thresh):
     start_time = time.time()  # 设定程序开始运行时间
-    
+
     image = image[0:800, 0:800]
-    region_area, image = roi.threshold_segment(image, area_percent, structure_element)
+    region_area, image = roi.threshold_segment(image, area_percent,
+                                               structure_element)
 
     # 显示最终分离出的区域的图像
     cv.imshow("image", image)
@@ -37,7 +39,8 @@ def template_match(image, edge_templates, templates, canny, f, thresh):
         result = None
         if f == "ccoeff":
             # 检测
-            CCOEFF, image_roi = roi.template_match(image.copy(), template, canny[t_count])
+            CCOEFF, image_roi = roi.template_match(image.copy(), template,
+                                                   canny[t_count])
             # cv.imshow(f"img{t_count}", image_roi)
             print(f"区域{t_count+1}相关系数：{CCOEFF}")
             result = feature.correlation(CCOEFF, thresh[1], thresh[0])
@@ -46,12 +49,16 @@ def template_match(image, edge_templates, templates, canny, f, thresh):
             USE_DES = True
             if USE_DES:
                 # 检测
-                CCOEFF, image_roi = roi.template_match(image.copy(), template, canny[t_count], flag=1)
+                CCOEFF, image_roi = roi.template_match(image.copy(),
+                                                       template,
+                                                       canny[t_count],
+                                                       flag=1)
                 # 创建sift实例
                 sift = cv.SIFT_create()
                 # 模板的sift特征
                 kp_t, des_t = sift.detectAndCompute(templates[t_count], None)
-                template_sift = cv.drawKeypoints(templates[t_count], kp_t, None)
+                template_sift = cv.drawKeypoints(templates[t_count], kp_t,
+                                                 None)
                 cv.imshow(f'template{t_count+1}_sift', template_sift)
                 # 图像的roi的sift特征
                 kp_img, des_img = sift.detectAndCompute(image_roi, None)
@@ -69,13 +76,22 @@ def template_match(image, edge_templates, templates, canny, f, thresh):
                     matchs = key_point_match(new_kp_t, new_kp_img, 10)
                     kp_t = new_kp_t
                     kp_img = new_kp_img
-                    match_image = cv.drawMatches(templates[t_count], new_kp_t, image_roi, new_kp_img, matchs, None, flags=2)
+                    match_image = cv.drawMatches(templates[t_count],
+                                                 new_kp_t,
+                                                 image_roi,
+                                                 new_kp_img,
+                                                 matchs,
+                                                 None,
+                                                 flags=2)
                     cv.imshow(f'match{t_count+1}', match_image)
                 else:
                     matchs = []
             else:
                 # 检测
-                CCOEFF, image_roi = roi.template_match(image.copy(), template, canny[t_count], flag=1)
+                CCOEFF, image_roi = roi.template_match(image.copy(),
+                                                       template,
+                                                       canny[t_count],
+                                                       flag=1)
                 # 创建sift实例
                 sift = cv.SIFT_create()
                 # 获取特征点
@@ -84,17 +100,25 @@ def template_match(image, edge_templates, templates, canny, f, thresh):
                 # 计算位置相近的特征点
                 if kp_img:
                     matchs = key_point_match(kp_t, kp_img, 10)
-                    match_image = cv.drawMatches(templates[t_count], kp_t, image_roi, kp_img, matchs, None, flags=2)
+                    match_image = cv.drawMatches(templates[t_count],
+                                                 kp_t,
+                                                 image_roi,
+                                                 kp_img,
+                                                 matchs,
+                                                 None,
+                                                 flags=2)
                     cv.imshow(f'match{t_count + 1}', match_image)
                 else:
                     matchs = []
 
-            result = feature.key_points(kp_t, kp_img, matchs, thresh[1], thresh[0], 1000)
+            result = feature.key_points(kp_t, kp_img, matchs, thresh[1],
+                                        thresh[0], 1000)
 
         # 霍夫不太适合不同缺陷的同时检测
         elif f == "hough":
             # 检测
-            CCOEFF, image_roi = roi.template_match(image.copy(), template, canny[t_count])
+            CCOEFF, image_roi = roi.template_match(image.copy(), template,
+                                                   canny[t_count])
             if t_count == 0:
                 drawing = np.zeros(image_roi.shape, dtype=np.uint8)
                 lines = defect1_hough_line(image_roi)
@@ -108,7 +132,7 @@ def template_match(image, edge_templates, templates, canny, f, thresh):
                 cv.imshow('hough2', drawing)
                 result = feature.defect2_hough(image_roi.shape, lines, 10)
 
-        result_explain(result, t_count+1)
+        result_explain(result, t_count + 1)
         t_count += 1
 
     end_time = time.time()  # 记录程序结束运行时间
@@ -155,7 +179,8 @@ def sift_match(image, templates):
                               singlePointColor=(0, 0, 255),
                               matchesMask=matches_mask[:50],
                               flags=0)
-            result_image = cv.drawMatchesKnn(template, kp_t, image, kp_img, matches[:50], None, **drawParams)
+            result_image = cv.drawMatchesKnn(template, kp_t, image, kp_img,
+                                             matches[:50], None, **drawParams)
             cv.imshow(f'match{t_count + 1}', result_image)
         else:
             matches = []
@@ -177,8 +202,8 @@ if __name__ == '__main__':
     for image in samples.sample:
         print(f"样本{count}：")
         # thresh_segment(image, data.area_percent, data.structure_element, data.normal_area, data.thresh)
-        template_match(image, samples.edge_templates, samples.templates, samples.canny, samples.f,
-                       samples.thresh)
+        template_match(image, samples.edge_templates, samples.templates,
+                       samples.canny, samples.f, samples.thresh)
         # sift_match(image, data.templates)
         count += 1
 

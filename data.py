@@ -12,7 +12,7 @@ class DataLoader:
         self.normal_area = None
         self.area_percent = None
         self.sample = None
-        
+
     def load(self, sample_set, segment, f=None):
         if sample_set == 1:
 
@@ -34,7 +34,8 @@ class DataLoader:
                 self.thresh = 0.9
 
                 # 用于形态学计算的矩形结构元素
-                self.structure_element = cv.getStructuringElement(cv.MORPH_RECT, (7, 7))
+                self.structure_element = cv.getStructuringElement(
+                    cv.MORPH_RECT, (7, 7))
 
             elif segment == "template_match":
                 self.edge_templates = []
@@ -43,13 +44,19 @@ class DataLoader:
                 canny1 = (50, 100)
                 canny2 = (100, 200)  # 500x下的canny
                 self.canny = [canny1, canny2]  # canny法的两个阈值
-                
+
                 self.f = f
                 self.thresh = (0.1, 0.75)
 
                 # 生成模板
-                template1, edge_template1 = template_generate(refer1_sample, x=(50, 300), y=(50, 300), canny=canny1)
-                template2, edge_template2 = template_generate(refer2_sample, x=(20, 100), y=(220, 470), canny=canny2)
+                template1, edge_template1 = template_generate(refer1_sample,
+                                                              x=(50, 300),
+                                                              y=(50, 300),
+                                                              canny=canny1)
+                template2, edge_template2 = template_generate(refer2_sample,
+                                                              x=(20, 100),
+                                                              y=(220, 470),
+                                                              canny=canny2)
                 self.edge_templates.append(edge_template1)
                 self.edge_templates.append(edge_template2)
                 self.templates.append(template1)
