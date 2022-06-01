@@ -261,7 +261,7 @@ def nearest_point(point, pt_set):
     return min_distance, index
 
 
-def key_point_match(kp_t,
+def point_location_match(kp_t,
                     kp_img,
                     th,
                     des_t=np.empty((0, 0)),

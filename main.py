@@ -73,7 +73,7 @@ def template_match(image, edge_templates, templates, canny, f, thresh):
                     for m in matchs:
                         new_kp_t.append(kp_t[m.queryIdx])
                         new_kp_img.append(kp_img[m.trainIdx])
-                    matchs = key_point_match(new_kp_t, new_kp_img, 10)
+                    matchs = point_location_match(new_kp_t, new_kp_img, 10)
                     kp_t = new_kp_t
                     kp_img = new_kp_img
                     match_image = cv.drawMatches(templates[t_count],
@@ -99,7 +99,7 @@ def template_match(image, edge_templates, templates, canny, f, thresh):
                 kp_img = sift.detect(image_roi, None)
                 # 计算位置相近的特征点
                 if kp_img:
-                    matchs = key_point_match(kp_t, kp_img, 10)
+                    matchs = point_location_match(kp_t, kp_img, 10)
                     match_image = cv.drawMatches(templates[t_count],
                                                  kp_t,
                                                  image_roi,
